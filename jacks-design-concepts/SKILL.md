@@ -1,5 +1,5 @@
 ---
-name: divergent-design-concepts
+name: jacks-design-concepts
 description: Use when asked for multiple UI/UX design options, alternatives, or explorations - "give me some designs for", "redesign this page", "toolbar layouts", "button interactions/animations", "a few concepts for". Beats the mode collapse where every option turns out to be the same idea with different names.
 ---
 

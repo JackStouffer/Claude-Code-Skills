@@ -1,4 +1,4 @@
-# divergent-design-concepts
+# jacks-design-concepts
 
 A skill for generating several different UI/UX design concepts from one prompt.
 

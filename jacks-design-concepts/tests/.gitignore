@@ -1,0 +1,6 @@
+# Only the reusable harness is tracked. The baseline prompt is generated from
+# SKILL.md by baseline.py; proposal variants, run outputs, and write-ups are
+# local scratch. The conclusion of a run goes in ../README.md.
+runs/
+RESULTS.md
+variants/

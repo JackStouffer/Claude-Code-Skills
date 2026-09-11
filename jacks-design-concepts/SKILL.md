@@ -11,10 +11,10 @@ Asked for several design concepts, independent agents collapse to the same idea.
 
 Beat collapse with three levers, in order of impact:
 1. **Pre-assigned orthogonal territories** — each concept is handed a distinct design axis it MUST diverge on, so no two can grab the same default.
-2. **String Seed of Thought (SSoT)** — one random string per agent. The agent decomposes the design into decision points, enumerates options per point, and picks each option by arithmetic on a segment of the seed. The seed is a source to sample from, never a vibe to interpret.
+2. **Seeded spec selection** — one random string per agent. The agent decomposes the design into decision points, enumerates options per point, and picks each option by arithmetic on a segment of the seed. The seed is a source to sample from, never a vibe to interpret, and it never reaches the design step as text.
 3. **A diversity referee** — one agent reads all concepts, flags convergence, and forces pivots.
 
-Why a seed: left to "be creative," a model slides back to its highest-probability default. Random text in the prompt measurably raises output entropy, the effect is independent of temperature, and one injection is enough — extra random strings add nothing. An externally generated seed (not one the model invents) guarantees independence across parallel agents.
+Why a seed: left to "be creative," a model slides back to its highest-probability default. What moves a model off that default is a per-output *specification* it must visibly satisfy (Zhang, Xin & Zhong 2026); a bare random string in the prompt does little on its own. Here the seed exists only to pick that specification. The arithmetic runs in python, so the string's length and form do not matter, and the seed is generated externally so parallel agents cannot correlate. See the README for sources and `tests/` for the measured baseline.
 
 All grounded in the existing project's design language so concepts stay compatible with the codebase while still being distinct from each other.
 
@@ -27,9 +27,9 @@ All grounded in the existing project's design language so concepts stay compatib
 - Toolbar layouts, button interactions/animations, empty states, dashboards
 - Any open-ended UI exploration prone to the obvious default
 
-**Not for:** a single agreed design (just build it), copy/content-only changes, or pixel tweaks to existing UI. SSoT only helps open-ended tasks — never apply it to a task with one correct answer.
+**Not for:** a single agreed design (just build it), copy/content-only changes, or pixel tweaks to existing UI. Seeded selection only helps open-ended tasks — never apply it to a task with one correct answer.
 
-## The SSoT decision procedure
+## The seeded decision procedure
 
 This is the mechanism each concept agent runs. It converts the seed into a concept skeleton *before* any prose or wireframe is written.
 
@@ -87,7 +87,7 @@ differ here from any default: [assigned axis + short instruction].
 Seed (your randomness source — use exactly as given, do NOT invent your own):
 [random string]
 
-Apply String Seed of Thought. Plan every divergent choice from the seed BEFORE
+Apply seeded spec selection. Plan every divergent choice from the seed BEFORE
 you design:
 1. Decompose this brief into 5-7 seeded decision points: the structural choices
    that would make two concepts for THIS brief materially different (for a
@@ -148,7 +148,7 @@ Give the user the gallery path and a one-line summary per concept. Note that `de
 | Decision points copied from a stock list that doesn't fit the brief (motion/easing for a dashboard) | Decompose for this brief; structural choices, not magnitudes |
 | Seed drives only cosmetic knobs (timing, px) while the structural idea is freehand | Every structural decision point is enumerated and seed-selected |
 | Overruling a seed-picked option because another "feels better" | That's the default sneaking back; keep the seed's pick |
-| Stacking multiple random strings per agent | One seed is enough — the diversity effect saturates |
+| Stacking multiple random strings per agent | One seed is enough — 8 four-char segments cover 7 decision points |
 | Same axis given to two agents | Each concept gets a unique primary axis |
 | Skipping the referee | It's the cheapest collapse insurance; always run it |
 | Rendering all N to HTML | Spec-first; render only the top ~3 the referee keeps |
@@ -163,4 +163,4 @@ Give the user the gallery path and a one-line summary per concept. Note that `de
 - Every concept has the same layout skeleton
 - The referee finds nothing to pivot (it should almost always find at least one collision)
 
-All mean: enforce the SSoT procedure, strengthen the territory assignments, and re-run Phase A.
+All mean: enforce the seeded procedure, strengthen the territory assignments, and re-run Phase A.

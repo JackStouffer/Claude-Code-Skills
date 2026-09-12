@@ -7,7 +7,7 @@ structured questioning before any code is written.
 
 The hardest bugs to fix are the ones baked into a bad spec. A rough idea handed
 straight to implementation carries unexamined assumptions, unconsidered edge
-cases, and tradeoffs nobody chose on purpose — and those surface as rework days
+cases, and tradeoffs nobody chose on purpose, and those surface as rework days
 later.
 
 ## How the skill works
@@ -27,11 +27,11 @@ It acts as a senior staff engineer interrogating the idea one round at a time.
    one consolidated message and the user must explicitly confirm it before anything
    is generated.
 4. **Produce the plan in a fresh context.** A subagent reads only `plan-notes.md`
-   and writes the markdown plan — overview, goals/non-goals, detailed design, edge
+   and writes the markdown plan: overview, goals/non-goals, detailed design, edge
    cases, the design decisions and why each was chosen, implementation notes, and
    honest open questions, saving it to the project root. The interview transcript
-   never reaches the generating context, which is what keeps the plan from
-   degrading. Once the plan is written, `plan-notes.md` is deleted — it was scratch.
+   never reaches the generating context, which keeps the plan from degrading. Once
+   the plan is written, `plan-notes.md` is deleted; it was scratch.
 5. **Correctness check.** A Sonnet subagent verifies every concrete claim the plan
    makes about the existing codebase — file paths, line numbers, function and type
    names — against the actual source, and reports any mismatch as a bullet list (or

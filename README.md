@@ -4,7 +4,7 @@ These are various skills I've made for my workflow. I don't claim their the best
 
 ## Skills
 
-- **jacks-receiving-feedback** — Verify review feedback against the real sources (code, config, docs) before acting on it, reporting a verdict per claim.
-- **jacks-design-concepts** — Generate genuinely divergent UI/UX design options instead of the same idea under different names.
-- **jacks-executing-plans** — Execute an already-reviewed implementation plan with todo tracking and per-task verification.
-
+- jacks-receiving-feedback: Verify review feedback against the real sources (code, config, docs) before acting on it, reporting a verdict per claim.
+- acks-design-concepts: Generate genuinely divergent UI/UX design options instead of the same idea under different names.
+- jacks-executing-plans: Execute an already-reviewed implementation plan with todo tracking and per-task verification.
+- feature-planner: Write a plan file by breaking down a feature request and then asking as series of questions about the implementation.

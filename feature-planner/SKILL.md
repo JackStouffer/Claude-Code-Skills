@@ -152,7 +152,17 @@ Anything that still needs resolution. Be honest — it's better to flag
 unknowns than to pretend everything is settled.
 ```
 
-The subagent saves this plan as a markdown file in the project root so the user can reference it during implementation. Once the plan file is written, delete `plan-notes.md` right away — it was ephemeral scratch, and the plan supersedes it. Report the saved plan path back to the user.
+The subagent saves this plan as a markdown file in the project root so the user can reference it during implementation. Once the plan file is written, delete `plan-notes.md` right away. It was ephemeral scratch, and the plan supersedes it.
+
+### Phase 5: Correctness check
+
+Before reporting the plan as done, dispatch a subagent to verify every concrete claim the plan makes about the *current* state of the source code. Only check claims about code that already exists. Ignore descriptions of code the plan proposes to *add* — those are not verifiable yet.
+
+Dispatch it with an instruction like:
+
+> Read the feature plan at `<exact plan path>`. It describes a feature to build in this codebase. Check every concrete claim it makes about the code that **already exists** — file paths, line numbers, function/class/type names, imports, signatures, config keys. For each claim, verify it against the actual source. Do NOT check claims about code the plan proposes to add. Report any claim that is wrong (file missing, line mismatch, name misspelled or nonexistent, etc.) as a bullet-point list, each bullet naming the claim and what's actually true. If every claim checks out, report exactly `No issues found.`
+
+If the subagent found issues fix them right away. Otherwise report the plan is completed to the user with the plan path.
 
 ## Adapting to context
 

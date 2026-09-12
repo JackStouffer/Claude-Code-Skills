@@ -32,14 +32,13 @@ It acts as a senior staff engineer interrogating the idea one round at a time.
    honest open questions, saving it to the project root. The interview transcript
    never reaches the generating context, which is what keeps the plan from
    degrading. Once the plan is written, `plan-notes.md` is deleted — it was scratch.
+5. **Correctness check.** A Sonnet subagent verifies every concrete claim the plan
+   makes about the existing codebase — file paths, line numbers, function and type
+   names — against the actual source, and reports any mismatch as a bullet list (or
+   `No issues found.`). It catches hallucinated code references before they reach
+   implementation.
 
 The questioning is specific (names the actual edge case, not "have you thought
 about edge cases?"), offers concrete options with tradeoffs, and challenges
 politely. It adapts round count to feature size and stops when the user says to
 pick sensible defaults.
-
-## When to use it
-
-Use it in the ambiguity-resolution phase, before coding — "plan a feature",
-"spec this out", "help me think through", "write a PRD". Do not use it for tasks
-that are already well-specified and just need implementing.

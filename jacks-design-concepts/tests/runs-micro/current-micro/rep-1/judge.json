@@ -1,0 +1,69 @@
+{
+  "pairs": [
+    {
+      "a": "01",
+      "b": "02",
+      "same_choices": [
+        "Commit motion is an elastic scale/overshoot spring pop (both settle with an overshoot beat so 'landed' is felt, not just seen)",
+        "Un-save is a distinct reverse of the save motion rather than a second identical action",
+        "aria-pressed toggle plus prefers-reduced-motion fallback that drops the spring/overshoot to a plain fade",
+        "Saved state carries a persistent accent-colored cue that survives after the transient animation ends"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": false,
+      "diversity_1_10": 7
+    },
+    {
+      "a": "01",
+      "b": "03",
+      "same_choices": [
+        "Interaction is a single in-place click on one button (no gesture, button never moves position)",
+        "Un-save is the same button clicked again, running a reverse animation back to empty",
+        "Pending/in-flight state shown by an animated indeterminate indicator (breathing pulse vs seam shimmer) with optimistic commit and a failure recovery animation",
+        "Core motion carries the state change continuously and explicitly rejects an instant static filled/outline swap",
+        "Motion includes an overshoot settle for tactility",
+        "aria/reduced-motion accessibility handling with the persistent cue readable without hover or motion"
+      ],
+      "same_skeleton": true,
+      "same_metaphor": false,
+      "diversity_1_10": 6
+    },
+    {
+      "a": "02",
+      "b": "03",
+      "same_choices": [
+        "Persistent saved cue is a small colored badge dot at the top-right corner/notch (near-identical; empty state has no dot)",
+        "Metaphor is containment/deposit: the item is put away into a target (shelf-slot vs pocket/pouch) rather than a page mark",
+        "Un-save is the literal inverse of the commit action",
+        "Commit motion is an elastic/overshoot settle",
+        "prefers-reduced-motion drops the overshoot to a plain fade"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": true,
+      "diversity_1_10": 6
+    }
+  ],
+  "realization": [
+    {"concept": "01", "committed": 6, "visible": 6, "missing": []},
+    {"concept": "02", "committed": 6, "visible": 6, "missing": []},
+    {"concept": "03", "committed": 6, "visible": 6, "missing": []}
+  ],
+  "enumeration_overlap": [
+    "Persistent cue option 'small badge/dot' appears in all three tables (near-verbatim)",
+    "Motion option 'elastic pop/overshoot scale' in 01 and 02 (semantically identical)",
+    "Motion option 'shape morph' in all three tables (cross-fade morph / shape morph to check / shape-tween morph)",
+    "Motion option 'liquid/ink fill' in all three (liquid ink fill rising / radial ink flood / liquid fill-drain)",
+    "Feedback option 'haptic + visual' in 01 and 03",
+    "Feedback option 'audio/sound + visual' in 01 and 03",
+    "Feedback option 'particle burst' in 01 and 02",
+    "Feedback option 'visual-only / pure' in all three",
+    "Cue option 'solid fill vs outline' in 01 and 02",
+    "Cue option 'underline/accent bar' in 01 and 02",
+    "Cue option 'background chip fill' in 01 and 03",
+    "Un-save option 'same-button instant toggle' in 01 and 03",
+    "Un-save option 'long-press to remove/release' in 01 and 03",
+    "Spatial-anchor option 'animate from icon center' in all three",
+    "Spatial-anchor option 'from bottom edge' in 01 and 02"
+  ],
+  "notes": "All three concepts are fully realized: every one of the 6 tabled options is independently visible in the body/wireframe, none table-only. Chosen values differ, but the option menus overlap heavily and 02/03 converge on the same containment metaphor plus a near-identical top-right badge dot."
+}

@@ -1,0 +1,66 @@
+{
+  "pairs": [
+    {
+      "a": "01",
+      "b": "02",
+      "same_choices": [
+        "Motion (not color/fade) carries the confirmation; color deliberately demoted",
+        "State is readable without color (colorblind-safe / glance-readable) as an explicit goal",
+        "Glyph compresses/shrinks on pointer-down, then releases",
+        "Commit motion is an overshoot that settles back (spring-style pop)",
+        "Un-saving is done by clicking the same button again",
+        "Single accent hue over an otherwise neutral surface; hue is not the state cue"
+      ],
+      "same_skeleton": true,
+      "same_metaphor": true,
+      "diversity_1_10": 5
+    },
+    {
+      "a": "01",
+      "b": "03",
+      "same_choices": [
+        "Haptic feedback fired via navigator.vibrate(8) (near-verbatim identical)",
+        "Feedback modality = haptic tick plus a visual, not color/particle",
+        "Success motion is network-gated: the snap/settle fires only on server confirm, pending shown until then",
+        "Commit motion is an overshoot that settles (spring-style)",
+        "No glyph cross-fade/swap; saved state carried by an added shape (badge/label+morph), glyph never recolors",
+        "Neutral surface with one reserved accent color"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": false,
+      "diversity_1_10": 5
+    },
+    {
+      "a": "02",
+      "b": "03",
+      "same_choices": [
+        "Commit motion is a multi-stage decaying overshoot (double/secondary bounce), not a single ease",
+        "Warm amber is the saved/accent color (#F2C14E vs #E8B23A)",
+        "The physical settle of the bounce IS the success signal",
+        "Motion carries state; color demoted",
+        "A failure/un-save shake is used"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": false,
+      "diversity_1_10": 6
+    }
+  ],
+  "realization": [
+    {"concept": "01", "committed": 7, "visible": 7, "missing": []},
+    {"concept": "02", "committed": 6, "visible": 6, "missing": []},
+    {"concept": "03", "committed": 6, "visible": 6, "missing": []}
+  ],
+  "enumeration_overlap": [
+    "Spatial-anchor option set is nearly identical between 02 (from center / bottom edge / click point) and 03 (icon center / bottom edge / click point)",
+    "'outline->filled path morph' appears as an option in both 01 (DP0) and 03 (DP1)",
+    "Spring/elastic overshoot appears as an option in all three (01 'physics-spring overshoot', 02 'elastic overshoot'/'spring bounce', 03 'overshoot-settle')",
+    "'long-press to remove/release' un-save option in all three tables",
+    "Same-button-toggle un-save option in 01, 03, and 02 ('tap toggle recoil')",
+    "'hover-reveal X' un-save option in 01 and 03",
+    "'particle burst' feedback option in 01 and 03",
+    "'stroke-weight change' option in 01 (saved cue) and 03 (feedback)",
+    "Check-badge saved cue in 01 ('checkmark badge overlay') and 03 ('fill + check badge')",
+    "Optimistic-pending option in 01 ('none (optimistic)') and 02 ('instant optimistic then confirm')"
+  ],
+  "notes": "All three are the same underlying idea: a spring/overshoot motion that carries state so color is demoted, with only surface differences (badge vs size vs label, ring vs notch-hold vs tension, toggle vs eject vs hover-x). 02 and 03 overlap most on motion (double-bounce, amber), while 01 and 03 overlap most on behavior (identical vibrate(8), network-gated settle)."
+}

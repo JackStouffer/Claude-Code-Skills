@@ -1,0 +1,73 @@
+{
+  "pairs": [
+    {
+      "a": "01",
+      "b": "02",
+      "same_choices": [
+        "Unsaved = hollow bookmark outline, saved = solid/filled bookmark glyph (fill carries the saved state)",
+        "Warm off-white paper background (01 #F5F3EC vs 02 #F4F1EA — indistinguishable to a user)",
+        "State communicated by physical motion/geometry, explicitly NOT a color or opacity cross-fade",
+        "Metaphor family: button as a rigid physical object moving in space (card / key)",
+        "No spinner/ring; optimistic pending (01 rollback-on-fail, 02 goes straight to docked under 120ms)",
+        "Un-save is a second click on the same single button (no separate X, no long-press)"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": false,
+      "diversity_1_10": 7
+    },
+    {
+      "a": "01",
+      "b": "03",
+      "same_choices": [
+        "Unsaved = hollow outline, saved = solid filled bookmark silhouette",
+        "Warm paper background (#F5F3EC vs #F4F1EA — same experienced surface)",
+        "No spinner; responsiveness/optimism is a stated goal rather than a loading graphic",
+        "Un-save = run the same forward motion in reverse on the same button (reverse-flip / drain)",
+        "State carried by motion of the glyph itself, not a color-only tween"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": false,
+      "diversity_1_10": 8
+    },
+    {
+      "a": "02",
+      "b": "03",
+      "same_choices": [
+        "Saved-state cue is a filled bookmark glyph/silhouette (near-verbatim: 'filled glyph' vs 'filled silhouette')",
+        "Identical paper background hex #F4F1EA",
+        "Green-family fill for the saved state (fern #3E6F4E vs teal #147567/#1E8E7E)",
+        "Anchor/origin option set is identical (both tables offer 'button center' as option 0)",
+        "No spinner/ring; pending handled optimistically or by continuous motion",
+        "Un-save via the same single button, reversing the saved state (peel-away / drain)"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": false,
+      "diversity_1_10": 7
+    }
+  ],
+  "realization": [
+    {"concept": "01", "committed": 6, "visible": 6, "missing": []},
+    {"concept": "02", "committed": 6, "visible": 6, "missing": []},
+    {"concept": "03", "committed": 6, "visible": 6, "missing": []}
+  ],
+  "enumeration_overlap": [
+    "Motion primitive 'flip/rotate' listed in all three tables",
+    "Motion primitive 'scale pop/pulse' listed in all three tables",
+    "Motion primitive 'path morph outline->fill' listed in all three tables",
+    "Motion primitive 'liquid/ink fill' listed in 02 and 03",
+    "Saved-state cue 'filled glyph/solid fill/filled silhouette' listed in all three (all chose it except 01)",
+    "Saved-state cue 'badge dot' listed in all three",
+    "Saved-state cue 'ribbon / corner fold' listed in 01 and 02",
+    "Feedback modality 'audio tick + visual' listed in all three",
+    "Feedback modality 'haptic + visual' listed in 01 and 03",
+    "Feedback modality 'pure/color-fill visual' listed in 02 and 03",
+    "Spatial anchor 'button/icon center' listed in all three",
+    "Spatial anchor 'bottom edge / baseline' listed in all three",
+    "Spatial anchor 'top edge/notch/pin' listed in 01 and 02",
+    "Pending 'spinner / ring sweep' listed in 01 and 02",
+    "Pending 'optimistic/none' listed in 01 and 02",
+    "Un-save/reversal 'reverse the same animation' listed in all three",
+    "Un-save 'peel/swipe-off' listed in 01 and 02"
+  ],
+  "notes": "All three fully realize their 6 committed decisions in body and wireframe, and every option table overlaps heavily on the same enumerated primitives/cues/anchors. The concepts diverge on the chosen motion mechanic (flip vs press-in vs liquid) but converge on hollow-to-filled glyph, warm paper palette, no spinner, and same-button reversal."
+}

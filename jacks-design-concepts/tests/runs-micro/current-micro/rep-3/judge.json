@@ -1,0 +1,74 @@
+{
+  "pairs": [
+    {
+      "a": "01",
+      "b": "02",
+      "same_choices": [
+        "Save metaphor is folding down the top-right corner as a dog-ear",
+        "Persistent saved-state cue is the folded corner itself, no separate badge/dot/label",
+        "Warm amber fill carried by the folded corner (#E8A33D / #F2A73B are the same hue)",
+        "Cool/neutral outline glyph for the unsaved rest state",
+        "Spring / elastic overshoot as the motion character",
+        "Optimistic acknowledgement at click with server round-trip reconcile",
+        "Failure reverses the fold",
+        "aria-pressed reflects saved/unsaved for accessibility"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": true,
+      "diversity_1_10": 4
+    },
+    {
+      "a": "01",
+      "b": "03",
+      "same_choices": [
+        "Save metaphor is folding down the top-right corner as a dog-ear",
+        "Persistent saved-state cue is the folded corner",
+        "Near-identical parchment paper base (#F4EFE6 / #F4EFE4) with a dark ink glyph",
+        "Warm saturated accent for the fold underside (amber / burnt-sienna)",
+        "Pending state is held/withheld until server confirmation rather than silently optimistic",
+        "Failure un-creases the fold back to flat",
+        "prefers-reduced-motion collapses the fold to a non-animated state swap",
+        "aria-pressed reflects saved/unsaved for accessibility"
+      ],
+      "same_skeleton": true,
+      "same_metaphor": true,
+      "diversity_1_10": 4
+    },
+    {
+      "a": "02",
+      "b": "03",
+      "same_choices": [
+        "Save metaphor is folding down the top-right corner as a dog-ear",
+        "Persistent saved-state cue is the folded corner",
+        "Warm accent fill on the fold underside (amber / sienna)",
+        "A transient/ephemeral text label appears near the button around the interaction",
+        "Failure/undo reverses the fold",
+        "aria-pressed plus a text/AT equivalent for accessibility"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": true,
+      "diversity_1_10": 5
+    }
+  ],
+  "realization": [
+    {"concept": "01", "committed": 7, "visible": 7, "missing": []},
+    {"concept": "02", "committed": 6, "visible": 6, "missing": []},
+    {"concept": "03", "committed": 7, "visible": 7, "missing": []}
+  ],
+  "enumeration_overlap": [
+    "corner dog-ear fold as saved cue / metaphor (01, 02, 03)",
+    "elastic/spring overshoot pop as motion primitive (01, 02, 03)",
+    "particle burst motion option (01, 02, 03)",
+    "liquid fill sweep/rising motion option (01, 02)",
+    "extending ribbon tail / ribbon unfurl (01, 02)",
+    "ink-stamp press motion option (01, 02)",
+    "solid icon fill swap saved cue (01, 02)",
+    "spinner / progress-ring pending option (01, 02, 03)",
+    "shimmer pending option (01, 03)",
+    "ripple / radiating ripple / from-click-point anchor (02, 03)",
+    "checkmark / check-badge saved cue (02, 03)",
+    "top edge / top notch spatial anchor (01, 03)",
+    "haptic feedback modality option (01, 03)"
+  ],
+  "notes": "All three are the same dog-ear corner-fold with a warm-accent folded corner as the persistent saved cue, so metaphor and much of the palette/pending logic recur across every pair. Divergence lives only in motion primitive, un-save affordance, pending signal, and spatial anchor; every concept fully realizes its committed options in body/wireframe."
+}

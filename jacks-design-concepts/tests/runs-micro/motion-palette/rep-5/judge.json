@@ -1,0 +1,62 @@
+{
+  "pairs": [
+    {
+      "a": "01",
+      "b": "02",
+      "same_choices": [
+        "State is read as hollow-outline glyph -> solid-filled glyph (silhouette / glyph change), not a color-only cue",
+        "New state is legible at the frozen midpoint of the animation",
+        "The motion is a deformation of the icon shape itself, not an opacity/color crossfade",
+        "Un-save = re-click the same button, which plays the same animation in reverse",
+        "Optimistic/instant response on click; no pending spinner or greyout",
+        "Dark near-black surface + muted slate outline glyph (#8A94A6 vs #8A93A6, nearly identical) + a single bright accent that appears only on the saved glyph"
+      ],
+      "same_skeleton": true,
+      "same_metaphor": false,
+      "diversity_1_10": 5
+    },
+    {
+      "a": "01",
+      "b": "03",
+      "same_choices": [
+        "Motion is a fold/flip of the bookmark (paper-turn family)",
+        "Feedback = a burst of 6-8 particles/sparks emitted at the animation's ~midpoint (~110ms), then decays/fades",
+        "Overshoot-then-settle timing (springs past the target, then settles back)",
+        "Optimistic: animation fires on click/pointerdown before the network resolves; on failure it snaps back with a red error tell",
+        "prefers-reduced-motion drops the particles and the overshoot, using a straight ~120ms fallback",
+        "Un-save = second click plays the reverse animation with no particle/spark burst",
+        "aria-pressed toggle plus a ~40-44px minimum hit target"
+      ],
+      "same_skeleton": true,
+      "same_metaphor": true,
+      "diversity_1_10": 3
+    },
+    {
+      "a": "02",
+      "b": "03",
+      "same_choices": [
+        "Spring/overshoot-recoil timing (motion springs past rest, then settles)",
+        "Optimistic instant response on click; failure snaps back",
+        "Un-save = second click plays the animation in reverse (mirror of the save)"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": false,
+      "diversity_1_10": 6
+    }
+  ],
+  "realization": [
+    {"concept": "01", "committed": 6, "visible": 6, "missing": []},
+    {"concept": "02", "committed": 6, "visible": 6, "missing": []},
+    {"concept": "03", "committed": 6, "visible": 6, "missing": []}
+  ],
+  "enumeration_overlap": [
+    "Motion: scale-pop appears in all three tables (01 transform-scale/pop, 02 scale/pinch, 03 scale pop)",
+    "Motion: outline morph-to-fill/ribbon appears in all three (01 path-morph, 02 shape morph outline->ribbon, 03 outline morph-to-fill)",
+    "Motion: stroke/path-draw in 02 and 03; slide/translate in 02 and 03; fold/flip in 01 (3D flip) and 03",
+    "Feedback: particle/spark burst in 01 and 03; audio tick in all three; a haptic option in all three",
+    "State cue: badge dot in all three; hollow->solid / fill-solidity in all three; color-only / color swap in 01 and 02; label/text swap in 01 and 02",
+    "Spatial anchor: click point/cursor in 02 and 03; center (button/icon) in 02 and 03; top notch in 02 and 03",
+    "Un-save: long-press in all three; hover-reveal X in all three; plain re-click/click toggle in all three; motion-reverse variant in 02 and 03"
+  ],
+  "notes": "01 and 03 are near the same design (fold/flip + midpoint particle burst + overshoot-settle + optimistic + reduced-motion fallback + reverse un-save), separated mainly by state cue (silhouette vs hue) and palette (dark vs light). All three tables draw from a heavily shared option pool and each concept fully realizes every committed decision in its body."
+}

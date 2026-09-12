@@ -117,3 +117,44 @@ arise when the string selects a spec rather than being read as text.
 
 A narrower brief with fewer natural structural options might collide more. The suite
 is set up to rerun on a different brief.
+
+## Why the axis palette was not split by brief type
+
+Feedback argued the single axis palette is layout-shaped and collapses on
+micro-interaction/animation briefs, and proposed a second, motion-specific palette
+(motion primitive / feedback modality / timing structure) with the axis subset
+seed-selected per brief. This is exactly the narrower-brief case flagged above, so it
+was tested before adopting.
+
+The 2026-09-11 micro run used `tests/brief-micro.md` — the click-to-confirm animation
+for a single "Save" icon button, N=3, greenfield — 5 reps of 3 concepts on Opus 4.8,
+one judge per rep. Two arms differed only in which palette the three territories came
+from: `current-micro` (the current layout-shaped palette) vs `motion-palette` (the
+proposed motion palette). The Phase A template was identical across arms.
+
+| mean over 5 reps | current-micro | motion-palette |
+|---|---|---|
+| materially same choices per pair (lower is better) | 4.93 | 5.07 |
+| judged pairwise diversity, 1-10 | 5.67 | 6.00 |
+| pairs sharing a layout skeleton, of 3 | 0.8 | 1.2 |
+| pairs sharing a metaphor, of 3 | 1.4 | 0.6 |
+| spec values visibly realized in the concept | 1.00 | 1.00 |
+
+The motion palette did not fix the primary metric: same-choices-per-pair was flat
+(5.07 vs 4.93) and shared skeletons rose (1.2 vs 0.8). Its only gain was on metaphor —
+it more than halved shared-metaphor pairs (0.6 vs 1.4), breaking up a bookmark-metaphor
+cluster (dog-ear / ink-fill / tide-fill) that the layout arm fell into. But that
+failure is already addressable by the existing **Metaphor** axis in the one palette,
+and the signal is within noise at this sample size. The territory+seed mechanism
+carried the divergence regardless of which vocabulary labeled the territories, so
+swapping labels bought nothing on the metric that matters. The micro brief did collide
+more in absolute terms than the layout brief (4.93 vs 2.47 same/pair), confirming micro
+briefs are harder — but the palette split was not the fix. No failing baseline, so the
+palette was not split and the axis-subset selection was not seeded.
+
+Three lower-risk items from the same feedback were applied directly, being
+wording/mechanical rather than divergence-behaviour changes: deriving a `<slug>` from
+the brief for the output paths, reframing option enumeration as "only options you'd be
+willing to build" (each ships 1-in-n, so straw men ship that often), and an
+orchestrator step that re-runs the seed one-liner and asserts it matches each spec's
+"chosen" column before the referee runs.

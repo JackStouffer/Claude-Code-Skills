@@ -1,0 +1,69 @@
+{
+  "pairs": [
+    {
+      "a": "01",
+      "b": "02",
+      "same_choices": [
+        "Persistent saved state is carried by a non-color structural/pose change (corner dog-ear fold vs held ~12deg tilt), NOT a fill or color swap; both explicitly reject color as the saved cue and both persist after the animation and after hover leaves.",
+        "Snappy sub-200ms motion built on an overshoot (01 ~180ms scale-pop with fast overshoot, 02 ~150ms anticipation-then-snap with one damped overshoot) — same quick, physical, springy timing character."
+      ],
+      "same_skeleton": false,
+      "same_metaphor": false,
+      "diversity_1_10": 7
+    },
+    {
+      "a": "01",
+      "b": "03",
+      "same_choices": [
+        "Motion is anchored at the bottom edge of the button — 01 originates its scale from the bookmark notch (bottom V) 'pressing down into the toolbar', 03 anchors the unfurl/retract at the bottom-edge 'pocket'; a user sees motion tied to the bottom in both.",
+        "A transient, momentary confirmation flourish fires at the commit instant on top of the state change (checkmark stamp punch that lifts vs a single radial haptic-style pulse ring), and both include a brief scale bump at that moment."
+      ],
+      "same_skeleton": false,
+      "same_metaphor": false,
+      "diversity_1_10": 8
+    },
+    {
+      "a": "02",
+      "b": "03",
+      "same_choices": [
+        "Confirmation uses a faux-haptic / haptic-style pulse cue as the commit feel (02's entire feedback modality is a faux-haptic micro-bounce; 03 adds an explicit visual haptic-style pulse that mimics a haptic tick at the latch).",
+        "Bright yellow-green accent on a dark surface — lime #C6FF3D (02) and chartreuse #C8F03C (03) are near-identical hues, over charcoal (#1B1B1E) / deep plum (#3B1F4B)."
+      ],
+      "same_skeleton": false,
+      "same_metaphor": false,
+      "diversity_1_10": 7
+    }
+  ],
+  "realization": [
+    {"concept": "01", "committed": 7, "visible": 7, "missing": []},
+    {"concept": "02", "committed": 7, "visible": 7, "missing": []},
+    {"concept": "03", "committed": 6, "visible": 6, "missing": []}
+  ],
+  "enumeration_overlap": [
+    "filled vs outline / fill state as a cue: 01 'filled vs outline glyph', 02 'filled solid icon', 03 'outline->solid morph' + 'icon shape swap outline<->filled' + 'fill sweep' + 'fill color'",
+    "scale pop: 01 'transform scale-pop', 03 'scale pop' (02 'center-scale')",
+    "overshoot spring: 02 'spring/elastic overshoot', 03 'overshoot-settle spring'",
+    "anticipation-then-snap: 02 'anticipation-then-snap', 03 'elastic anticipation-then-snap'",
+    "stagger: 02 'two-stage stagger', 03 'cascade stagger'",
+    "particle burst: 01 'particle burst', 03 'particle burst'",
+    "pulse ring / haptic pulse: 01 'pulse ring', 03 'visual haptic-style pulse'",
+    "sound cue: 01 'sound-only', 03 'micro-sound cue'",
+    "text/side label toast: 01 'side label toast', 03 'text label toast'",
+    "badge/dot: 01 'accent dot', 02 'dot/badge notch', 03 'badge dot'",
+    "background pill: 01 'background pill swap', 03 'background pill'",
+    "tilt/angle cue: 02 'held weight-tilt angle', 03 'tilt/angle'",
+    "toggle reverse on same click: 01 'toggle reverse-anim', 02 'same click toggles reverse'",
+    "long-press to remove: 01 'long-press to remove', 02 'long-press to release'",
+    "hover reveals x: 01 'hover reveals x', 02 'hover reveals x then click'",
+    "center anchor: 01 'center', 02 'center-scale', 03 'from icon centroid' + 'radial from center'",
+    "click-point anchor: 01 'cursor click point', 03 'from click point'",
+    "top anchor: 01 'top edge (hangs)', 02 'top-pin pivot', 03 'from top ribbon'",
+    "bottom anchor: 02 'bottom-anchored swing'/'bottom-left corner', 03 'from bottom edge (pocket)', 01 'bookmark notch (V)'",
+    "palette ink+amber: 01 'ink navy/cream + amber', 02 'amber/honey on ink', 03 'ink + amber'",
+    "palette teal: 01 'deep teal + warm gold', 02 'teal/mint on slate', 03 'deep teal + coral'",
+    "palette coral: 01 'slate + coral', 02 'coral on cream', 03 'deep teal + coral'",
+    "palette lime/charcoal: 01 'charcoal + lime', 02 'electric lime on charcoal', 03 'slate + electric-lime'",
+    "palette plum: 01 'plum + peach', 03 'plum + chartreuse'"
+  ],
+  "notes": "Motion architecture, saved-state cue, and un-save affordance are genuinely distinct across all three, but the per-concept option tables draw from a near-identical shared menu so enumeration overlap is heavy. The tightest real collision is 02 and 03 landing on the same bright lime/chartreuse-on-dark palette and a shared haptic-pulse feel."
+}

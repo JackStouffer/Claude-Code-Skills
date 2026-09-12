@@ -1,0 +1,76 @@
+{
+  "pairs": [
+    {
+      "a": "01",
+      "b": "02",
+      "same_choices": [
+        "Core motion is a liquid fill that rises upward inside the bookmark outline (tide vs sluice) — a user sees water filling a vessel in both",
+        "Fill direction is upward (bottom-to-top rise) in both",
+        "Persistent saved state = filled glyph PLUS a redundant non-color durable marker (accent underline vs pinned ribbon) so it reads without relying on color",
+        "Feedback modality carries no haptics and no sound — motion/visual only",
+        "Un-save reuses the same motion played in reverse to drain the fill back out",
+        "No spinner during commit; pending is handled without a determinate progress indicator",
+        "Same underlying water/liquid metaphor for the whole interaction"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": true,
+      "diversity_1_10": 4
+    },
+    {
+      "a": "01",
+      "b": "03",
+      "same_choices": [
+        "Single click commits the save (one-click toggle interaction model) — no arming step",
+        "Optimistic commit: the visual save fires on click within a frame and reconciles in the background, reverting/rolling back if the server rejects",
+        "Saved state is signaled by a filled/colored glyph",
+        "Un-save replays the save animation in reverse"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": false,
+      "diversity_1_10": 7
+    },
+    {
+      "a": "02",
+      "b": "03",
+      "same_choices": [
+        "Pending/in-flight state uses an indeterminate indicator (shimmer band vs spinner ring), never a percentage or determinate progress",
+        "Un-save reuses the same mechanism as save (same two-step gesture / same animation reversed) rather than a distinct affordance",
+        "A distinct traveling/pinned token marks the saved item's destination beyond mere color (pinned ribbon tab vs wax-seal token to tray)"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": false,
+      "diversity_1_10": 8
+    }
+  ],
+  "realization": [
+    {"concept": "01", "committed": 7, "visible": 7, "missing": []},
+    {"concept": "02", "committed": 7, "visible": 7, "missing": []},
+    {"concept": "03", "committed": 6, "visible": 6, "missing": []}
+  ],
+  "enumeration_overlap": [
+    "motion: liquid/rising fill sweep — in all three tables",
+    "motion: particle burst — in all three tables",
+    "motion: outline->filled / path morph — in all three tables",
+    "motion: elastic/spring overshoot bounce — in all three tables",
+    "motion: fold/origami — in 02 and 03 tables",
+    "feedback: none / visual-only / color-only — in all three tables",
+    "feedback: +haptic (haptic pulse / haptic+color) — in all three tables",
+    "feedback: +micro-sound / audio tick — in all three tables",
+    "feedback: text micro-label toast / ephemeral label — in 01 and 02 tables",
+    "feedback: ripple/glow halo — in 02 and 03 tables",
+    "pending: spinner / progress ring — in all three tables",
+    "pending: skeleton / shimmer fill — in 02 and 03 tables",
+    "pending: completing / progress arc — in 01 and 03 tables",
+    "pending: pulsing dim glyph — in 02 and 03 tables",
+    "un-save: reverse-animation / same-gesture-reversed — in all three tables",
+    "un-save: long-press remove/release — in 01 and 03 tables",
+    "un-save: hover X/reveal-x overlay — in 01 and 03 tables",
+    "un-save: second click / click-again — in 01 and 03 tables",
+    "anchor: cursor/pointer origin point — in all three tables",
+    "anchor: bottom edge / baseline — in 01 and 02 tables",
+    "saved cue: filled glyph + color — in 01 and 02 tables",
+    "saved cue / metaphor: dog-ear fold — in 02 and 03 tables",
+    "ribbon unfurl / pinned ribbon — in 01, 02, and 03 tables"
+  ],
+  "notes": "01 and 02 share the water/liquid-fill metaphor, upward-rising fill, reverse-drain un-save, and a filled-glyph-plus-durable-marker saved cue, differing mainly in 02's two-step gate and shimmer; 03 is the clear outlier with a stamp/seal metaphor and 3D-fold motion. All three concepts fully realize every committed decision in their bodies, and their independent option tables recycle a near-identical menu (liquid fill, particle burst, morph, spinner/shimmer, reverse-anim un-save)."
+}

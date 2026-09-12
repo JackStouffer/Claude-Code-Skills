@@ -34,7 +34,7 @@ All grounded in the existing project's design language so concepts stay compatib
 This is the mechanism each concept agent runs. It converts the seed into a concept skeleton *before* any prose or wireframe is written.
 
 1. **Decompose** the concept into the assigned axis (decision point 0, fixed to your territory) plus 5-7 seeded decision points — the choices that would make two concepts for *this brief* materially different. Derive them from the brief; do not reuse a stock list. Structural choices count as decision points; magnitudes (px, ms) do not. The concept-agent template below carries short examples of the right granularity.
-2. **Enumerate** 3-6 concrete candidate options for each seeded decision point, and write the full options table to the spec file *before* computing anything. Push past the first, obvious option — the default belongs to no one.
+2. **Enumerate** 3-6 concrete candidate options for each seeded decision point, and write the full options table to the spec file *before* computing anything. Enumerate only options you would actually be willing to build — each ships 1-in-n of the time, so a straw man you never wanted ships that often. Still push past the first, obvious option; the default belongs to no one.
 3. **Select** each option by running this over the seed (never in your head). Seeded decision point k uses seed chars `[4(k-1), 4k)`; chosen index = `sum(ASCII) mod option_count`, 0-based:
    ```bash
    python3 -c 'import sys;s=sys.argv[1];print([sum(map(ord,s[4*i:4*i+4]))%int(n) for i,n in enumerate(sys.argv[2:])])' "<seed>" <count_dp1> <count_dp2> ...
@@ -46,8 +46,10 @@ Territory guarantees divergence *across* concepts on the primary axis; the seed 
 
 ## Workflow
 
-### 0. Scope N from the request
+### 0. Scope N and the slug from the request
 Small element (one button, one animation) → 3. A page section or toolbar → 4-5. Full page/flow redesign → 6-8. State the number and why.
+
+Derive a short kebab-case `<slug>` from the brief ("Add to cart" → `add-to-cart`, "notification center panel" → `notification-center`). Every `design-concepts/<slug>/…` path below uses it.
 
 ### 1. Extract the house style (existing projects only)
 Before generating, read the project's real design language so concepts don't clash with the codebase:
@@ -94,8 +96,10 @@ you design:
    layout: hierarchy, navigation model, grouping, density, control placement...;
    for a micro-interaction: motion primitive, feedback modality, state cue,
    spatial anchor...). Not magnitudes.
-2. For each, enumerate 3-6 concrete candidate options — push past the obvious
-   one. Write the complete options table into the spec file NOW, before step 3.
+2. For each, enumerate 3-6 concrete candidate options you would actually be
+   willing to build — each ships 1-in-n of the time, so no straw men — and push
+   past the obvious one. Write the complete options table into the spec file NOW,
+   before step 3.
 3. Compute the picks with this command (never in your head; equal weights only):
    python3 -c 'import sys;s=sys.argv[1];print([sum(map(ord,s[4*i:4*i+4]))%int(n) for i,n in enumerate(sys.argv[2:])])' "<seed>" <count_dp1> <count_dp2> ...
    Decision point k uses seed chars [4(k-1), 4k); indices are 0-based. Fill the
@@ -117,6 +121,13 @@ Write design-concepts/<slug>/NN-name.md with:
 
 Return only the concept name and one-line core idea.
 ```
+
+### 3.5. Verify each seed table (orchestrator, mechanical)
+You hold every agent's seed and each spec file carries its options table. Before the referee runs, re-derive the picks yourself and assert they match — this turns "the chosen column disagrees with the index" from a red flag into a checked precondition. For each spec file, read the per-decision-point option counts (`n`) from its table, then run the same one-liner with that agent's seed:
+```bash
+python3 -c 'import sys;s=sys.argv[1];print([sum(map(ord,s[4*i:4*i+4]))%int(n) for i,n in enumerate(sys.argv[2:])])' "<that agent's seed>" <count_dp1> <count_dp2> ...
+```
+The output must equal the spec's "chosen" column, in order. On any mismatch, re-dispatch that concept agent — the agent computed in-head, reordered options after seeing the index, or fabricated the table. Do not hand a mismatched spec to the referee.
 
 ### 4. Phase B — diversity referee (one agent)
 Give it all N spec files:
@@ -145,6 +156,7 @@ Give the user the gallery path and a one-line summary per concept. Note that `de
 | Seed used as a Rorschach blot ("`z` means depth", "`+` means additive") | The seed SELECTS among enumerated options via sum(ASCII) mod n — it is never interpreted for meaning |
 | Indices computed in-head, or options reordered after the index is known | Write the options table first, then run the command; the output is final |
 | Weighting a choice toward one option | Equal weights only — a weighting is the default with a number on it |
+| Padding the options table with a straw man to reach 3-6 | Selection is uniform, so a straw man ships 1-in-n; enumerate only options you'd build |
 | Decision points copied from a stock list that doesn't fit the brief (motion/easing for a dashboard) | Decompose for this brief; structural choices, not magnitudes |
 | Seed drives only cosmetic knobs (timing, px) while the structural idea is freehand | Every structural decision point is enumerated and seed-selected |
 | Overruling a seed-picked option because another "feels better" | That's the default sneaking back; keep the seed's pick |

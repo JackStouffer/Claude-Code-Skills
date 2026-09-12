@@ -1,0 +1,68 @@
+{
+  "pairs": [
+    {
+      "a": "01",
+      "b": "02",
+      "same_choices": [
+        "Bookmark/ribbon is the icon and the governing metaphor (ink-filled bookmark vs. ribbon tucked into a slot)",
+        "A 'Saved' text pill slides in beside the button as the confirmation, positioned next to the control rather than over it",
+        "Dark surface (near-black slate / deep navy) with a single warm accent color reserved exclusively for the saved state",
+        "Saved rest state adds a non-color legibility cue on top of fill so state does not depend on color memory"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": true,
+      "diversity_1_10": 5
+    },
+    {
+      "a": "01",
+      "b": "03",
+      "same_choices": [
+        "Click-triggered, optimistic commit that starts immediately and reconciles with the server, reverting (ink drains / flip settles back) on failure",
+        "An explicit in-flight pending cue distinct from both idle and saved",
+        "Dark navy/slate surface with a near-identical amber accent for the saved state",
+        "A short text word animates in on confirm ('Saved' / 'Moored')",
+        "A dedicated at-rest, motion-independent state marker for accessibility ('Saved' label vs. corner badge)"
+      ],
+      "same_skeleton": true,
+      "same_metaphor": false,
+      "diversity_1_10": 4
+    },
+    {
+      "a": "02",
+      "b": "03",
+      "same_choices": [
+        "Motion primitive is a flip about the vertical axis that reveals a filled committed face (fold/origami scaleX flip vs. rotateY card flip) — a user experiences both as the button turning over",
+        "Dark deep-navy surface with a single warm accent reserved exclusively for the saved state"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": false,
+      "diversity_1_10": 6
+    }
+  ],
+  "realization": [
+    {"concept": "01", "committed": 6, "visible": 6, "missing": []},
+    {"concept": "02", "committed": 7, "visible": 7, "missing": []},
+    {"concept": "03", "committed": 6, "visible": 6, "missing": []}
+  ],
+  "enumeration_overlap": [
+    "fold/origami/card-flip motion primitive (01, 02, 03)",
+    "outline-to-filled / glyph path-morph motion (01, 02, 03)",
+    "spring/elastic scale bounce motion (01, 02, 03)",
+    "liquid fill / ink-rise motion (01, 02, 03)",
+    "particle burst motion (02, 03)",
+    "audio-plus-visual feedback modality (01, 02, 03)",
+    "text-label feedback modality (02, 03)",
+    "ghost/skeleton pending cue (01, 03)",
+    "progress ring/arc pending cue (01, 03)",
+    "dot-trail pending cue (01, 03)",
+    "shimmer sweep pending cue (01, 03)",
+    "hover-reveals-x un-save (01, 02, 03)",
+    "reverse-animation / repeat-same-interaction un-save toggle (01, 02, 03)",
+    "long-press to un-save (01, 03)",
+    "glow halo/ring saved cue (01, 02)",
+    "underline tick / accent underline saved cue (01, 02)",
+    "badge saved cue (01, 02, 03)",
+    "confirmation beside the button / trailing toast (02, 03)"
+  ],
+  "notes": "All three fully realize their tables — every committed option is identifiable from the body without the table. Real convergence is in the shared option pools (flip, morph, hover-x, audio) and in 01/03's near-identical click+optimistic+pending+dark-amber skeleton."
+}

@@ -1,0 +1,71 @@
+{
+  "pairs": [
+    {
+      "a": "01",
+      "b": "02",
+      "same_choices": [
+        "Save icon is a bookmark glyph (both keep the bookmark form; 03 does not)",
+        "Core save visual is a colored fill rising bottom-up through the bookmark silhouette",
+        "Un-save reverses the motion: the fill drains back downward on the same button",
+        "Spatial anchor is the icon center; nothing radiates from the cursor or a corner badge",
+        "Failure state = revert/drain the fill plus a single flash"
+      ],
+      "same_skeleton": true,
+      "same_metaphor": true,
+      "diversity_1_10": 4
+    },
+    {
+      "a": "01",
+      "b": "03",
+      "same_choices": [
+        "Single click triggers the save (no hold/dwell)",
+        "Un-save is a second click on the same button that plays the save motion in reverse",
+        "Everything happens in place at the button; nothing flies to a collection or radiates from the cursor",
+        "Un-save is same-button toggle, no separate remove-X or long-press"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": false,
+      "diversity_1_10": 7
+    },
+    {
+      "a": "02",
+      "b": "03",
+      "same_choices": [
+        "Confirmation is anchored at the button/icon center, single in-place focal point",
+        "Save request is treated as async with its own distinct in-place pending visual",
+        "Un-save plays the save motion in reverse (fill drains / flap slides back out) on the same button"
+      ],
+      "same_skeleton": false,
+      "same_metaphor": false,
+      "diversity_1_10": 8
+    }
+  ],
+  "realization": [
+    {"concept": "01", "committed": 6, "visible": 6, "missing": []},
+    {"concept": "02", "committed": 7, "visible": 7, "missing": []},
+    {"concept": "03", "committed": 7, "visible": 7, "missing": []}
+  ],
+  "enumeration_overlap": [
+    "particle burst (01 & 03 motion options, 02 feedback option)",
+    "fill sweep / liquid fill-sweep (01 & 02 motion options, 03 feedback option)",
+    "draw-on stroke (01 & 03 motion options)",
+    "outline/path morph (01, 02, 03 motion options)",
+    "audio tick / micro-sound tick (01, 02, 03 feedback options)",
+    "tooltip/label text (01, 02, 03 feedback options)",
+    "haptic pulse/bounce (01 & 02 feedback options)",
+    "color only (01, 02, 03 feedback options)",
+    "indeterminate/spinner ring (01, 02, 03 pending options)",
+    "pulsing dim/breathe/ghost (01, 02, 03 pending options)",
+    "skeleton shimmer / dim shimmer sweep (01, 02, 03 pending options)",
+    "progress ring/fill/arc (01, 02, 03 pending options)",
+    "icon center / centered / center-out (01, 02, 03 anchor options)",
+    "cursor/click point (01, 02, 03 anchor options)",
+    "baseline (01 & 03 anchor options)",
+    "long-press (01, 02, 03 un-save options)",
+    "hover-reveal X (01, 02, 03 un-save options)",
+    "same-gesture reverses / rewind same click (01, 02, 03 un-save options)",
+    "second-click (01 & 03 un-save options)",
+    "undo affordance/toast (01 & 03 un-save options)"
+  ],
+  "notes": "All three fully realize their committed decisions in the body/wireframe. 01 and 02 are the closest pair (shared bookmark-fill skeleton, icon-center anchor, reversible drain), diverging mainly on click-vs-hold trigger; 03 is the true outlier having dropped the bookmark shape entirely."
+}

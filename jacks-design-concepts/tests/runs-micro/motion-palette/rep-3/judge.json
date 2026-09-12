@@ -1,0 +1,74 @@
+{
+  "pairs": [
+    {
+      "a": "01",
+      "b": "02",
+      "same_choices": [
+        "Un-save is the same button re-clicked; it replays the save animation in reverse (reverse morph / reverse spatial displacement) rather than a separate delete UI",
+        "Save is optimistic: the animation plays immediately on click and silently reconciles / rolls back on server failure",
+        "The interaction starts on pointerdown (~0-16ms) so fast saves never flash a loader",
+        "A small transient in-flight marker appears only during the network round-trip and disappears on ack (skeleton shimmer / inline teal dot) — same behavioral role and lifecycle",
+        "Saved state is signalled with a green-teal accent (mint / teal); the glyph's color turns teal-green on save",
+        "Confirmation is deliberately kept off the label/toast path — no 'Saved!' toast; a lightweight persistent state signal is used instead"
+      ],
+      "same_skeleton": true,
+      "same_metaphor": false,
+      "diversity_1_10": 6
+    },
+    {
+      "a": "01",
+      "b": "03",
+      "same_choices": [
+        "Un-save is the same button re-clicked; it plays the exact save animation backward (reverse morph / reverse scrub)",
+        "Save is optimistic and reconciles silently on failure by reversing",
+        "The interaction fires on pointerdown for ~0 perceived latency",
+        "Saving animates a fill rising up into the bookmark glyph (clip-path tide rise / amber fill wipes up) — same 'fill fills the icon from the base' experience",
+        "The bookmark glyph deforms in shape as part of the state change (pennant droop / ribbon fold), not just a color swap",
+        "Dark toolbar surface with a single saturated accent (mint on ink / amber on slate)",
+        "The confirmation/feedback element sits beneath the button (underline bar+count / 'Saved' tooltip chip) rather than only inside the glyph"
+      ],
+      "same_skeleton": true,
+      "same_metaphor": false,
+      "diversity_1_10": 5
+    },
+    {
+      "a": "02",
+      "b": "03",
+      "same_choices": [
+        "Core motion moves the icon DOWN and seats it into a recessed container at the button's lower edge (drops into a slot / tucks into a pocket) — same spatial displacement into a lower receptacle",
+        "Physical-object metaphor: the icon behaves as a tangible thing that settles/tucks and then pops back out",
+        "Un-save is the same button re-clicked, playing the settle/tuck in reverse (token pops up / ribbon lifts out)",
+        "Save is optimistic and reconciles silently on failure",
+        "The interaction fires on pointerdown for ~0 perceived latency",
+        "prefers-reduced-motion collapses the animation to an instant snap/swap plus the state change",
+        "aria-pressed toggles saved/unsaved for accessibility"
+      ],
+      "same_skeleton": true,
+      "same_metaphor": true,
+      "diversity_1_10": 5
+    }
+  ],
+  "realization": [
+    {"concept": "01", "committed": 6, "visible": 6, "missing": []},
+    {"concept": "02", "committed": 6, "visible": 6, "missing": []},
+    {"concept": "03", "committed": 6, "visible": 6, "missing": []}
+  ],
+  "enumeration_overlap": [
+    "Un-save 'same-button/same-click toggle' (01, 03) and 'replay same anim reversed in place' (02)",
+    "Un-save 'long-press remove' (01, 02, 03)",
+    "Un-save 'hover reveals X' (01, 02, 03)",
+    "Un-save reverse-animation option: 'click-again reverse morph' (01) / 'reverse spatial displacement' (02) / 'reverse scrub' (03)",
+    "Pending 'progress arc' (01, 02)",
+    "Pending 'skeleton shimmer' (01) / 'skeleton pulse' (02)",
+    "Pending 'pulse dot' (01) / 'inline dot' (02)",
+    "Pending 'none/optimistic' (01) / 'no pending (pure optimistic)' (02)",
+    "Saved cue filled glyph: 'filled icon' (01) / 'outline->solid fill' (02) / 'filled glyph' (03)",
+    "Saved cue color-only: 'color swap' (01) / 'color shift only' (02) / 'color-only swap' (03)",
+    "Saved cue 'underline bar' as an option in both 01 (spatial anchor) and 03 (persistent cue)",
+    "Feedback 'numeric count' (01, 03) and 'tooltip text/label' (01, 03)",
+    "Motion spring/overshoot: 'physics spring' (01) / 'spring overshoot' (02) / 'overshoot-settle spring' (03)",
+    "Motion flip/rotate: '3D flip' (01) / 'coin flip rotation' (02) / 'rotate-flip' (03)",
+    "Motion elastic: 'elastic stretch' (01) / 'elastic pull-and-snap' (02)"
+  ],
+  "notes": "All three share one interaction skeleton (optimistic, pointerdown start, same-button reverse-animation toggle) and their per-concept options tables overlap heavily, especially on un-save, pending, and saved-cue choices. They diverge mainly on motion primitive and confirmation modality; 02 and 03 additionally converge on the same 'move down into a pocket/slot' metaphor."
+}

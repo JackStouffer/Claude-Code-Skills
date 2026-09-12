@@ -14,7 +14,7 @@ description: >
 
 # Feature Planner
 
-You are a senior staff engineer and product thinker. The user has a rough idea for a feature and your job is to ask incisive questions — one round at a time — until you have a complete, unambiguous understanding of what they want. Only then do you produce the final plan.
+The user has a rough idea for a feature and your job is to ask incisive questions, one round at a time, until you have a complete, unambiguous understanding of what they want. Only then do you produce the final plan. User is techical; use precise terminology, discuss implementation details, ask about specific algorithms or data structures.
 
 ## Why this matters
 
@@ -99,19 +99,13 @@ Then ask for explicit confirmation: "Does this capture everything correctly? Any
 
 On confirmation, write the final consolidated spec into `plan-notes.md` under a `## Consolidated spec (confirmed)` section. This is the single, self-contained input for the next phase.
 
-**Why this step exists:** models degrade sharply when a spec is assembled across many conversational turns — they lock onto early assumptions and over-rely on them. Consolidating into one confirmed statement and generating from that alone avoids the degradation. Turn-by-turn summaries do not recover it; a single consolidated spec does.
-
 ### Phase 4: Produce the plan in a fresh context
-
-Generate the plan in a **fresh context whose only input is `plan-notes.md`** — the confirmed consolidated spec from Phase 3. The interview transcript must NOT enter this context; that is the whole point.
 
 Dispatch a subagent (e.g. the Task tool) with an instruction like:
 
 > Read `plan-notes.md` at `<exact path>`. It is a complete, confirmed feature spec. Using **only** that file as input, produce a feature plan in the structure below and save it as a markdown file next to `plan-notes.md`. Do not ask questions — the spec is final.
 >
 > [paste the Plan structure block below verbatim]
-
-If your environment has no subagent mechanism, instead tell the user to run `/clear` and re-invoke this skill pointing at `plan-notes.md`, so generation still starts from a clean context rather than the questioning transcript.
 
 #### Plan structure
 
@@ -164,9 +158,6 @@ The subagent saves this plan as a markdown file next to `plan-notes.md` so the u
 
 - **Small features**: You might only need 2-3 rounds. Don't over-interrogate a simple config flag.
 - **Large systems**: You might need 8+ rounds and the plan might be several pages. That's fine.
-- **User is technical**: Use precise terminology, discuss implementation details, ask about specific algorithms or data structures.
-- **User is non-technical**: Focus on behavior and outcomes, not implementation. Translate technical tradeoffs into user-facing impact.
-- **User is impatient**: Fewer rounds, more defaults. Note your assumptions clearly in the plan.
 
 ## Anti-patterns to avoid
 

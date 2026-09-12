@@ -1,0 +1,5 @@
+# Only the reusable harness is tracked. The Phase-4 prompt is generated from
+# SKILL.md by prompt.py; run outputs and the write-up are local scratch. The
+# conclusion of a run goes in ../README.md.
+runs/
+RESULTS.md

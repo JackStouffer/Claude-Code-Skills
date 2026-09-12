@@ -14,15 +14,22 @@ later.
 
 It acts as a senior staff engineer interrogating the idea one round at a time.
 
-1. **Play back the understanding.** Before any questions, restate the idea in
-   2-3 sentences so a fundamental misread is caught early.
+1. **Play back the understanding, then open a notes file.** Before any questions,
+   restate the idea in 2-3 sentences so a fundamental misread is caught early, then
+   create `plan-notes.md` in the working directory as the durable source of truth.
 2. **Structured questioning rounds.** 1-4 questions per round, each round on a
    coherent theme, walking through intent/scope, core behavior, edge cases,
    design tradeoffs, integration, UX, operability, and security — skipping what
-   doesn't apply. Later rounds are informed by earlier answers.
-3. **Produce the plan.** Once enough is locked down, write a markdown plan:
-   overview, goals/non-goals, detailed design, edge cases, the design decisions
-   and why each was chosen, implementation notes, and honest open questions.
+   doesn't apply. After every round the locked decisions are appended to
+   `plan-notes.md`, so the spec lives on disk, not in the chat.
+3. **Consolidate & confirm.** When questioning ends, the whole spec is restated in
+   one consolidated message and the user must explicitly confirm it before anything
+   is generated.
+4. **Produce the plan in a fresh context.** A subagent reads only `plan-notes.md`
+   and writes the markdown plan — overview, goals/non-goals, detailed design, edge
+   cases, the design decisions and why each was chosen, implementation notes, and
+   honest open questions. The interview transcript never reaches the generating
+   context, which is what keeps the plan from degrading.
 
 The questioning is specific (names the actual edge case, not "have you thought
 about edge cases?"), offers concrete options with tradeoffs, and challenges

@@ -32,6 +32,15 @@ The user gives you a rough description of what they want. Read it carefully. Ide
 
 Do NOT start asking questions yet. First, play back your understanding in 2-3 sentences so the user can correct any fundamental misunderstanding before you dive into details.
 
+Once the user confirms your played-back understanding, create a running notes file at `plan-notes.md` in the working directory and **tell the user the exact path**. This file — not the chat history — is the source of truth for the spec, and it must survive across context resets. Seed it:
+
+```markdown
+# Plan Notes: [Feature Name]
+
+## Seed idea
+[The user's original description, plus the understanding you played back and they confirmed.]
+```
+
 ### Phase 2: Structured questioning rounds
 
 Ask questions using the `AskUserQuestion` tool (or equivalent interactive questioning mechanism in your environment). Ask questions **one round at a time**, with 1-4 questions per round. Each round should focus on a coherent theme.
@@ -68,11 +77,41 @@ Authentication, authorization, data sensitivity, PII handling, audit trails.
 - **Offer options when you can.** Instead of open-ended "how should we handle X?", present 2-3 concrete approaches with tradeoffs: "We could (a) queue and deduplicate, which is safest but adds latency, or (b) accept-last-write-wins, which is simpler but risks data loss. Which fits better?"
 - **Challenge politely.** If something in the user's description seems like it might cause problems, say so: "You mentioned doing X synchronously — at the scale you described, that could become a bottleneck. Want to consider an async approach, or is synchronous simplicity more important here?"
 - **Know when to stop.** If the user's answers are getting terse or they say "that's fine, just pick something reasonable", respect that. Not every decision needs to be interrogated. Use your judgment to fill in sensible defaults and note them in the plan.
-- **Synthesize as you go.** At the start of each new round, briefly summarize what you've locked down so far so the user can see progress and correct course early.
+- **Record every round to disk.** After each round's answers, append the decisions locked in that round to `plan-notes.md` — the concrete choices, not a chat summary. One section per round:
 
-### Phase 3: Produce the plan
+  ```markdown
+  ## Round N — [theme]
+  - [Decision]: [what was chosen, plus the why if a tradeoff was made]
+  - [Deferred]: [anything the user punted on, logged as an open question]
+  ```
 
-Once you've gathered enough information (typically 3-8 rounds depending on complexity), produce a structured feature plan. Write it as a markdown document.
+  Record what was *decided*, not what was *discussed*. This file must be complete enough that someone who never saw the conversation could rebuild the spec from it — because in Phase 4 that is exactly what happens.
+- **Synthesize as you go.** At the start of each new round, summarize from `plan-notes.md` what's locked down so far so the user can see progress and correct course early.
+
+### Phase 3: Consolidate & confirm
+
+When questioning is done (the user signals they're satisfied, or you've covered the dimensions that matter), do NOT go straight to the plan. First, read `plan-notes.md` back and emit **one consolidated restatement of the entire spec** in a single message — every goal, non-goal, behavior, edge-case decision, tradeoff chosen, and open question, gathered in one place.
+
+Then ask for explicit confirmation: "Does this capture everything correctly? Anything to add, change, or remove before I generate the plan?"
+
+- If the user requests changes, update `plan-notes.md`, re-emit the full consolidated restatement, and ask again. Loop until they confirm.
+- Only proceed once the user explicitly confirms.
+
+On confirmation, write the final consolidated spec into `plan-notes.md` under a `## Consolidated spec (confirmed)` section. This is the single, self-contained input for the next phase.
+
+**Why this step exists:** models degrade sharply when a spec is assembled across many conversational turns — they lock onto early assumptions and over-rely on them. Consolidating into one confirmed statement and generating from that alone avoids the degradation. Turn-by-turn summaries do not recover it; a single consolidated spec does.
+
+### Phase 4: Produce the plan in a fresh context
+
+Generate the plan in a **fresh context whose only input is `plan-notes.md`** — the confirmed consolidated spec from Phase 3. The interview transcript must NOT enter this context; that is the whole point.
+
+Dispatch a subagent (e.g. the Task tool) with an instruction like:
+
+> Read `plan-notes.md` at `<exact path>`. It is a complete, confirmed feature spec. Using **only** that file as input, produce a feature plan in the structure below and save it as a markdown file next to `plan-notes.md`. Do not ask questions — the spec is final.
+>
+> [paste the Plan structure block below verbatim]
+
+If your environment has no subagent mechanism, instead tell the user to run `/clear` and re-invoke this skill pointing at `plan-notes.md`, so generation still starts from a clean context rather than the questioning transcript.
 
 #### Plan structure
 
@@ -119,7 +158,7 @@ Anything that still needs resolution. Be honest — it's better to flag
 unknowns than to pretend everything is settled.
 ```
 
-Save this plan as a markdown file so the user can reference it during implementation.
+The subagent saves this plan as a markdown file next to `plan-notes.md` so the user can reference it during implementation. Report the saved path back to the user.
 
 ## Adapting to context
 

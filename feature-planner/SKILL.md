@@ -32,7 +32,7 @@ The user gives you a rough description of what they want. Read it carefully. Ide
 
 Do NOT start asking questions yet. First, play back your understanding in 2-3 sentences so the user can correct any fundamental misunderstanding before you dive into details.
 
-Once the user confirms your played-back understanding, create a running notes file at `plan-notes.md` in the working directory and **tell the user the exact path**. This file — not the chat history — is the source of truth for the spec, and it must survive across context resets. Seed it:
+Once the user confirms your played-back understanding, create a running notes file at `plan-notes.md` in the project root and **tell the user the exact path**. This file is an ephemeral scratch pad — not the chat history — that holds the source of truth for the spec while planning is underway, and it must survive across context resets. It gets deleted in Phase 4 once the final plan is written. Seed it:
 
 ```markdown
 # Plan Notes: [Feature Name]
@@ -103,7 +103,7 @@ On confirmation, write the final consolidated spec into `plan-notes.md` under a 
 
 Dispatch a subagent (e.g. the Task tool) with an instruction like:
 
-> Read `plan-notes.md` at `<exact path>`. It is a complete, confirmed feature spec. Using **only** that file as input, produce a feature plan in the structure below and save it as a markdown file next to `plan-notes.md`. Do not ask questions — the spec is final.
+> Read `plan-notes.md` at `<exact path>`. It is a complete, confirmed feature spec. Using **only** that file as input, produce a feature plan in the structure below and save it as a markdown file in the project root. Do not ask questions — the spec is final.
 >
 > [paste the Plan structure block below verbatim]
 
@@ -152,7 +152,7 @@ Anything that still needs resolution. Be honest — it's better to flag
 unknowns than to pretend everything is settled.
 ```
 
-The subagent saves this plan as a markdown file next to `plan-notes.md` so the user can reference it during implementation. Report the saved path back to the user.
+The subagent saves this plan as a markdown file in the project root so the user can reference it during implementation. Once the plan file is written, delete `plan-notes.md` right away — it was ephemeral scratch, and the plan supersedes it. Report the saved plan path back to the user.
 
 ## Adapting to context
 

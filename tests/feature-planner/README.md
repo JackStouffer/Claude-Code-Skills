@@ -18,10 +18,10 @@ than Opus's on the same spec.
 ## Layout
 
 ```
-tests/
+tests/feature-planner/
   README.md      this file                                          tracked
   spec.md        the fixed confirmed plan-notes.md fixture           tracked
-  prompt.py      prints the Phase-4 prompt, derived from SKILL.md    tracked
+  prompt.py      prints the Phase-4 prompt, derived from the skill   tracked
   judge.md       judge rubric; writes judge.json per rep             tracked
   score.py       aggregates runs/rep-*/judge.json into a verdict     tracked
   .gitignore                                                         tracked
@@ -33,9 +33,9 @@ tests/
   RESULTS.md     write-up of the run                                 ignored
 ```
 
-Only the reusable harness is committed. The prompt is derived from SKILL.md every
-run so it cannot drift. Run outputs and the write-up are scratch — what survives a
-run is the decision and the numbers, recorded in `../README.md`.
+Only the reusable harness is committed. The prompt is derived from `SKILL.md` and
+`plan-structure.md` every run so it cannot drift. Run outputs and the write-up are scratch — what survives a
+run is the decision and the numbers, recorded in `../../feature-planner/README.md`.
 
 ## Why blind, and why the plan file has no MODEL line
 
@@ -53,14 +53,16 @@ and `sonnet`; everything else — spec, prompt, judge model — is identical acr
 arms and across reps. Pick one strong judge model (Opus) and use it for every rep.
 
 0. `python3 prompt.py > /tmp/phase4-prompt.md`. This is the Phase-4 prompt with
-   `{{NOTES_PATH}}` and `{{OUT_PATH}}` tokens. It exits non-zero if SKILL.md
-   changed shape — fix `prompt.py`, don't hand-edit the output.
+   `{{NOTES_PATH}}` and `{{OUT_PATH}}` tokens, and the skill's
+   `plan-structure.md` inlined where Phase 4 would tell the agent to read it. It
+   exits non-zero if either file changed shape — fix `prompt.py`, don't
+   hand-edit the output.
 1. Per rep `N` (`mkdir -p runs/rep-N`, copy the prompt to `runs/rep-N/prompt.md`
    for the record):
    a. Dispatch **two** plan-writing agents in one message, one on `opus` and one
       on `sonnet`. Each gets the generated prompt with `{{NOTES_PATH}}` = absolute
       path to `spec.md` and `{{OUT_PATH}}` = `runs/rep-N/<model>.md`. Tell each
-      agent to read only `spec.md`, nothing else under `tests/`.
+      agent to read only `spec.md`, nothing else under `tests/feature-planner/`.
    b. Record each agent's returned `MODEL:` line to confirm the arm actually ran
       on the intended model.
    c. Flip a coin: write `runs/rep-N/mapping.json` assigning `A`/`B` to the two
@@ -70,7 +72,8 @@ arms and across reps. Pick one strong judge model (Opus) and use it for every re
    `{{OUT_PATH}}` = `runs/rep-N/judge.json`.
 3. `python3 score.py`.
 4. Write `RESULTS.md`: judge model, reps, the two tables, reading, decision. Then
-   carry the decision and the numbers into `../README.md`; `RESULTS.md` is scratch.
+   carry the decision and the numbers into `../../feature-planner/README.md`;
+   `RESULTS.md` is scratch.
 
 ## What the numbers mean
 
@@ -94,7 +97,7 @@ Adopt Sonnet only if, over ≥5 reps: Sonnet's accept-rate ≈ Opus's (and high)
 Sonnet fabricates no more than Opus, and the head-to-head is roughly even (Sonnet
 not preferred-against in a clear majority of reps). Any of: Sonnet dropping
 required sections, inventing requirements, or losing most head-to-heads → keep
-Opus. Record the outcome in `../README.md`.
+Opus. Record the outcome in `../../feature-planner/README.md`.
 
 ## Changing the fixture
 

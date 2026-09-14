@@ -11,7 +11,7 @@ be audited. Nothing else changes, so the baseline can never drift from the skill
 import os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-skill = open(f"{HERE}/../SKILL.md").read()
+skill = open(f"{HERE}/../../jacks-design-concepts/SKILL.md").read()
 
 m = re.search(r"^Concept-agent prompt template:\n```\n(.*?)\n```", skill, re.S | re.M)
 if not m:

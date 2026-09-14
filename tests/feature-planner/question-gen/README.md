@@ -7,7 +7,8 @@ all eight domains from just the plan-notes prompt?**
 ## The design under test
 
 Phase 2 of the skill dispatches a single `fp-question-gen` subagent with the
-prompt in `../../question-gen-prompt.md`: the full `plan-notes.md` contents plus
+prompt in `../../../feature-planner/question-gen-prompt.md`: the full
+`plan-notes.md` contents plus
 a description of each of the eight question domains. The subagent writes one JSON
 file of up to six questions per domain, and the main agent asks the union of them
 to the user. Fewer questions are assumed better; six is a cap, not a target.
@@ -20,7 +21,7 @@ every run so it cannot drift.
 
 - **Model:** Opus, **effort:** medium.
 - **Tools:** `Write` only. No `Read`, no `Bash`, no web. All context comes from
-  the prompt. Pinned in `../../agents/fp-question-gen.md` (symlinked from
+  the prompt. Pinned in `../../../feature-planner/agents/fp-question-gen.md` (symlinked from
   `.claude/agents/` in this repo and from `~/.claude/agents/`).
 - **Output:** one JSON file per domain; the agent's only reply is the paths.
   Questions never touch the transcript.
@@ -28,10 +29,10 @@ every run so it cannot drift.
 ## Layout
 
 ```
-question-gen/
+tests/feature-planner/question-gen/
   README.md       this file                                        tracked
   background.md   the fixed background-context fixture (a seed idea) tracked
-  prompt.py       renders ../../question-gen-prompt.md for one rep    tracked
+  prompt.py       renders the skill's question-gen-prompt.md per rep tracked
   judge.md        judge rubric; scores question quality per domain   tracked
   score.py        aggregates <runs>/rep-*/judge.json                 tracked
   .gitignore                                                         tracked
@@ -69,7 +70,8 @@ Judge with one strong model (Opus), same judge for every rep.
    (absolute path to `background.md`), `{{DOMAIN_FILES}}` (the eight
    `runs/rep-N/*.json` paths), and `{{OUT_PATH}}` = `runs/rep-N/judge.json`.
 3. `python3 score.py` (or `python3 score.py runs-control` etc. for an older arm).
-4. Write `RESULTS.md`, then carry the decision + numbers into `../../README.md`.
+4. Write `RESULTS.md`, then carry the decision + numbers into
+   `../../../feature-planner/README.md`.
 
 Five reps is the standard (single reps lie); a 1–2 rep pilot is fine to see
 direction, labelled as a pilot.
@@ -96,4 +98,5 @@ useful close to total (little padding), offbase near zero, non-redundant near
 1.0 across the union, and specificity/assumption-surfacing high. The two earlier
 arms are the reference points: the eight-Sonnet fan-out had the coverage
 (44 useful) but paid in redundancy and invented premises; the single inline Opus
-was clean but thin (24 useful). Record the outcome in `../../README.md`.
+was clean but thin (24 useful). Record the outcome in
+`../../../feature-planner/README.md`.

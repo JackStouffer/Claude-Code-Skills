@@ -54,7 +54,8 @@ to pick sensible defaults.
 
 ## Test results
 
-`tests/question-gen/` measures the question generator on a fixed seed idea
+`tests/feature-planner/question-gen/` (at the repo root) measures the question
+generator on a fixed seed idea
 (judge: Opus). Three arms have been run, all pilots (1–2 reps; five is the bar):
 
 | arm | useful questions | offbase / domain | non-redundant |

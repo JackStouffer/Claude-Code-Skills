@@ -18,7 +18,7 @@ if len(sys.argv) != 2:
     sys.exit(__doc__)
 out_dir = sys.argv[1]
 
-prompt = open(f"{HERE}/../../question-gen-prompt.md").read().rstrip()
+prompt = open(f"{HERE}/../../../feature-planner/question-gen-prompt.md").read().rstrip()
 background = open(f"{HERE}/background.md").read().strip()
 for token, rep in [("[paste the full contents of plan-notes.md]", background),
                    ("<out-dir>", out_dir)]:

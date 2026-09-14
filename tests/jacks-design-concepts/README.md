@@ -8,7 +8,7 @@ superpowers:writing-skills). If the baseline does not fail, do not ship the chan
 ## Layout
 
 ```
-tests/
+tests/jacks-design-concepts/
   README.md            this file                                   tracked
   brief.md             fixed brief + territories                   tracked
   judge.md             judge rubric; writes judge.json per rep     tracked
@@ -29,7 +29,8 @@ tests/
 Only the reusable harness is committed. The baseline prompt is derived from
 SKILL.md every run, so it cannot drift and needs no maintenance. A proposal's
 variant folder, its runs, and its write-up are scratch. What survives a test is
-the decision and the numbers, recorded in `../README.md` next to the research it
+the decision and the numbers, recorded in `../../jacks-design-concepts/README.md`
+next to the research it
 bears on. If a proposal is adopted, edit the SKILL.md template; the baseline
 follows automatically.
 
@@ -78,12 +79,13 @@ minimum per variant; single reps lie.
    `runs/<variant>/rep-N/`. Run any variant tool on that output.
 3. Dispatch N concept agents in one message, each told to read
    `variants/<variant>/concept-agent.md` and apply the substitutions. Tell each
-   agent not to read any other file under `tests/`.
+   agent not to read any other file under `tests/jacks-design-concepts/`.
 4. When all N spec files exist, dispatch one judge per rep with `judge.md`,
    the N file paths, and `runs/<variant>/rep-N/judge.json` as output.
 5. `python3 score.py` (or `python3 score.py path/to/runs` for another location).
 6. Write `RESULTS.md`: model, brief, table, reading, decision. Then carry the
-   decision and the table into `../README.md`; `RESULTS.md` is not committed.
+   decision and the table into `../../jacks-design-concepts/README.md`;
+   `RESULTS.md` is not committed.
 
 ## Metrics
 
@@ -105,7 +107,8 @@ minimum per variant; single reps lie.
 3. Run `current` and `<proposal>` on the same brief, same model, same reps.
    Reuse existing `runs/current/` only if the brief, model, and baseline template
    are unchanged since that run.
-4. Record the outcome in `RESULTS.md`, then in `../README.md`. Adopt the
+4. Record the outcome in `RESULTS.md`, then in
+   `../../jacks-design-concepts/README.md`. Adopt the
    proposal only if `current` shows the failure the proposal claims to fix and
    the proposal fixes it. If adopted, edit the SKILL.md template and confirm
    `baseline.py` still runs clean.

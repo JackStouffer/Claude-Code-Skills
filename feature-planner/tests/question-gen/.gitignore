@@ -1,0 +1,5 @@
+# Only the reusable harness is tracked. Run outputs (subagent question JSON,
+# generated prompts, judge scores) and the write-up are local scratch. The
+# conclusion of a run goes in ../../README.md.
+runs*/
+RESULTS.md

@@ -14,7 +14,7 @@ description: >
 
 # Feature Planner
 
-The user has a rough idea for a feature and your job is to ask incisive questions, one round at a time, until you have a complete, unambiguous understanding of what they want. Only then do you produce the final plan. The user is technical; use precise terminology, discuss implementation details, ask about specific algorithms or data structures.
+The user has a rough idea for a feature and your job is to ask incisive questions, one domain at a time, until you have a complete, unambiguous understanding of what they want. Only then do you produce the final plan. The user is technical; use precise terminology, discuss implementation details, ask about specific algorithms or data structures.
 
 ## Why this matters
 
@@ -41,52 +41,39 @@ Once the user confirms your played-back understanding, create a running notes fi
 [The user's original description, plus the understanding you played back and they confirmed.]
 ```
 
-### Phase 2: Structured questioning rounds
+### Phase 1b: Gather background
 
-Ask questions using the `AskUserQuestion` tool (or equivalent interactive questioning mechanism in your environment). Ask questions **one round at a time**, with 1-4 questions per round. Each round should focus on a coherent theme.
+The question generator in Phase 2 cannot read files. It knows only what `plan-notes.md` says, so collect the background it needs now. Explore the codebase (dispatch an Explore subagent for anything broad) and append a `## Background` section to `plan-notes.md` covering:
 
-Work through these dimensions in roughly this order, skipping any that are obviously not applicable. You don't need to cover every single one — use judgment about what matters for this particular feature.
+- Existing code the feature touches: modules, entry points, data models, with file paths
+- Current behavior the feature must preserve or change, including validation and constraints already enforced
+- Adjacent systems it would interact with: APIs, services, data stores, jobs, feature flags
+- Conventions already in force: auth model, error-handling patterns, test setup
+- Anything in the seed idea you had to look up to understand
 
-**Round 1: Intent & scope**
-Why does this feature exist? What user problem does it solve? Who is the target user? What does success look like? What is explicitly OUT of scope?
+Record only what you verified in the source, with file paths. Where you looked and found nothing, write "unknown" rather than a guess. A wrong fact here becomes a question built on a false premise, which misleads the user more than a missing question would.
 
-**Round 2: Core behavior**
-Walk through the happy path step by step. What does the user see/do at each stage? What are the inputs and outputs? What's the data model look like at a high level?
+### Phase 2: Generate and ask questions
 
-**Round 3: Edge cases & error handling**
-What happens when things go wrong? Invalid input, partial failures, timeouts, concurrent access, empty states, rate limits. What are the boundary conditions? What happens at scale?
+**Generate.** Create an output dir (`mktemp -d`). Dispatch the `fp-question-gen` agent (Opus, medium effort, Write tool only). It cannot read files, so build its prompt from `question-gen-prompt.md` in this skill's folder: paste the full contents of `plan-notes.md` where the file indicates and fill in the output dir. The file also lists the question domains, in the order to ask them. The agent writes one JSON file per domain and replies with the paths.
 
-**Round 4: Design tradeoffs**
-Where are the tension points? Speed vs. correctness, simplicity vs. flexibility, consistency vs. availability. Present the tradeoffs you've identified and ask the user to make explicit choices rather than assuming.
+If `fp-question-gen` is not an available agent type, stop and tell the user to install `agents/fp-question-gen.md` from this skill's folder into `~/.claude/agents/` and restart the session.
 
-**Round 5: Integration & dependencies**
-How does this interact with existing systems? What APIs, services, or data stores does it touch? Are there ordering dependencies, migration concerns, or backward compatibility requirements?
+**Ask.** Read each domain's JSON file. Go through the domains in the order listed in `question-gen-prompt.md` and ask each domain's questions with the `AskUserQuestion` tool (or the equivalent in your environment), up to 4 questions per call, mapping `header`, `question`, and `options` straight through. Ask every generated question; the generator already trimmed to what the plan needs. Skip a domain whose array is empty.
 
-**Round 6: UX & presentation** (if applicable)
-How should this look and feel? What feedback does the user get? Loading states, confirmation flows, undo capability, accessibility considerations.
+- **Follow up when an answer opens new ground.** If an answer creates a decision no generated question covers, ask it before leaving that domain. Be specific, offer 2-3 options with tradeoffs, and challenge politely when an answer looks like it will cause problems at the stated scale.
+- **Know when to stop.** If the user's answers are getting terse or they say "that's fine, just pick something reasonable", respect that. Fill in sensible defaults and note them as decisions.
+- **Record every domain to disk.** After each domain's answers, append the decisions to `plan-notes.md`: the concrete choices, not a chat summary.
 
-**Round 7: Operability**
-How do we know it's working? Logging, monitoring, alerting. How is it configured? Feature flags? Rollback plan?
+```markdown
+## [Domain]
+- [Decision]: [what was chosen, plus the why if a tradeoff was made]
+- [Deferred]: [anything the user punted on, logged as an open question]
+```
 
-**Round 8: Security & privacy** (if applicable)
-Authentication, authorization, data sensitivity, PII handling, audit trails.
+Record what was *decided*, not what was *discussed*. This file must be complete enough that someone who never saw the conversation could rebuild the spec from it, because in Phase 4 that is exactly what happens.
 
-### Questioning style
-
-- **Be specific, not generic.** Don't ask "have you thought about edge cases?" Name the actual edge case you see: "What happens if a user submits this form twice within 500ms?"
-- **Offer options when you can.** Instead of open-ended "how should we handle X?", present 2-3 concrete approaches with tradeoffs: "We could (a) queue and deduplicate, which is safest but adds latency, or (b) accept-last-write-wins, which is simpler but risks data loss. Which fits better?"
-- **Challenge politely.** If something in the user's description seems like it might cause problems, say so: "You mentioned doing X synchronously; at the scale you described, that could become a bottleneck. Want to consider an async approach, or is synchronous simplicity more important here?"
-- **Know when to stop.** If the user's answers are getting terse or they say "that's fine, just pick something reasonable", respect that. Not every decision needs to be interrogated. Use your judgment to fill in sensible defaults and note them in the plan.
-- **Record every round to disk.** After each round's answers, append the decisions locked in that round to `plan-notes.md`: the concrete choices, not a chat summary. One section per round:
-
-  ```markdown
-  ## Round N — [theme]
-  - [Decision]: [what was chosen, plus the why if a tradeoff was made]
-  - [Deferred]: [anything the user punted on, logged as an open question]
-  ```
-
-  Record what was *decided*, not what was *discussed*. This file must be complete enough that someone who never saw the conversation could rebuild the spec from it, because in Phase 4 that is exactly what happens.
-- **Synthesize as you go.** At the start of each new round, summarize from `plan-notes.md` what's locked down so far so the user can see progress and correct course early.
+- **Synthesize as you go.** At the start of each new domain, summarize from `plan-notes.md` what's locked down so far so the user can see progress and correct course early.
 
 ### Phase 3: Consolidate & confirm
 
@@ -103,54 +90,7 @@ On confirmation, write the final consolidated spec into `plan-notes.md` under a 
 
 Dispatch a subagent (e.g. the Task tool) with an instruction like:
 
-> Read `plan-notes.md` at `<exact path>`. It is a complete, confirmed feature spec. Using **only** that file as input, produce a feature plan in the structure below and save it as a markdown file in the project root. Do not ask questions; the spec is final.
->
-> [paste the Plan structure block below verbatim]
-
-#### Plan structure
-
-```
-# Feature Plan: [Feature Name]
-
-## Overview
-2-3 sentence summary of what this feature does and why.
-
-## Goals & Non-Goals
-### Goals
-- Bulleted list of what this feature WILL do
-### Non-Goals
-- Bulleted list of what this feature explicitly WILL NOT do (and why)
-
-## Detailed Design
-
-### User Flow
-Step-by-step walkthrough of the happy path. Number each step.
-
-### Data Model
-Describe entities, relationships, and key fields. Use a simple schema
-notation or table — not a full DDL, just enough to communicate structure.
-
-### API / Interface
-If applicable, describe the key interfaces. Method signatures, endpoint
-shapes, CLI flags — whatever is relevant.
-
-### Edge Cases & Error Handling
-A table or list of edge cases and how each is handled. Reference the
-decisions made during questioning.
-
-### Design Decisions
-Document each significant tradeoff that was discussed, what was chosen,
-and why. This is the most valuable part of the plan — future you will
-thank present you.
-
-## Implementation Notes
-Suggested order of implementation, key risks, and anything the
-implementer should watch out for.
-
-## Open Questions
-Anything that still needs resolution. Be honest — it's better to flag
-unknowns than to pretend everything is settled.
-```
+> Read `plan-notes.md` at `<exact path>`. It is a complete, confirmed feature spec. Using **only** that file as input, produce a feature plan and save it as a markdown file in the project root. Follow the plan structure in `plan-structure.md` in this skill's folder (read it at `<exact path>`) exactly. Do not ask questions; the spec is final.
 
 The subagent saves this plan as a markdown file in the project root so the user can reference it during implementation. Once the plan file is written, delete `plan-notes.md` right away. It was ephemeral scratch, and the plan supersedes it.
 
@@ -166,13 +106,13 @@ If the subagent found issues, fix them right away. Otherwise report the plan is 
 
 ## Adapting to context
 
-- **Small features**: You might only need 2-3 rounds. Don't over-interrogate a simple config flag.
-- **Large systems**: You might need 8+ rounds and the plan might be several pages. That's fine.
+- **Small features**: Several domains will come back empty. Don't over-interrogate a simple config flag.
+- **Large systems**: Every domain may fill its six slots and the plan might be several pages. That's fine.
 
 ## Anti-patterns to avoid
 
-- Don't ask questions you can answer yourself from context. If the user said "this is for our React app", don't ask "what framework are you using?"
-- Don't repeat questions the user already answered in their initial description.
-- Don't front-load all questions in one massive wall of text. The point of rounds is to let earlier answers inform later questions.
-- Don't produce the plan prematurely. If you still have significant unknowns, ask another round.
+- Don't skip Phase 1b. Every fact the generator lacks is a question it cannot ask or, worse, one it asks on a false premise.
+- Don't paraphrase or trim `plan-notes.md` in the generator prompt. Paste it whole.
+- Don't ask the user something the background already answers. If a generated question is settled by the notes, answer it from the notes and record the decision.
+- Don't produce the plan prematurely. If you still have significant unknowns, ask about them.
 - Don't be a passive scribe. You're a design partner: push back, suggest alternatives, and flag risks.

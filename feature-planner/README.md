@@ -18,21 +18,29 @@ It acts as a senior staff engineer interrogating the idea one round at a time.
    restate the idea in 2-3 sentences so a fundamental misread is caught early, then
    create `plan-notes.md` in the project root as an ephemeral source of truth for
    the spec while planning runs.
-2. **Structured questioning rounds.** 1-4 questions per round, each round on a
-   coherent theme, walking through intent/scope, core behavior, edge cases,
-   design tradeoffs, integration, UX, operability, and security — skipping what
-   doesn't apply. After every round the locked decisions are appended to
-   `plan-notes.md`, so the spec lives on disk, not in the chat.
-3. **Consolidate & confirm.** When questioning ends, the whole spec is restated in
+2. **Gather background.** Explore the codebase for the code the feature touches,
+   the behavior it must preserve, adjacent systems, and conventions in force, and
+   write the verified facts (with file paths) into `plan-notes.md`. The question
+   generator in the next step cannot read files, so this is all it will know.
+3. **Generate and ask questions.** A Write-only Opus subagent (`fp-question-gen`,
+   installed from `agents/`) receives the plan notes plus a description of eight
+   question domains (intent/scope, core behavior, edge cases, design tradeoffs,
+   integration, UX, operability, security) via `question-gen-prompt.md`, and
+   writes up to six open questions per domain as JSON, fewer when the domain has
+   little open ground. The main agent asks every generated question with
+   `AskUserQuestion`, follows up where an answer opens new ground, and appends
+   each domain's decisions to `plan-notes.md`, so the spec lives on disk, not in
+   the chat.
+4. **Consolidate & confirm.** When questioning ends, the whole spec is restated in
    one consolidated message and the user must explicitly confirm it before anything
    is generated.
-4. **Produce the plan in a fresh context.** A subagent reads only `plan-notes.md`
+5. **Produce the plan in a fresh context.** A subagent reads only `plan-notes.md`
    and writes the markdown plan: overview, goals/non-goals, detailed design, edge
    cases, the design decisions and why each was chosen, implementation notes, and
    honest open questions, saving it to the project root. The interview transcript
    never reaches the generating context, which keeps the plan from degrading. Once
    the plan is written, `plan-notes.md` is deleted; it was scratch.
-5. **Correctness check.** A Sonnet subagent verifies every concrete claim the plan
+6. **Correctness check.** A Sonnet subagent verifies every concrete claim the plan
    makes about the existing codebase — file paths, line numbers, function and type
    names — against the actual source, and reports any mismatch as a bullet list (or
    `No issues found.`). It catches hallucinated code references before they reach
@@ -40,5 +48,33 @@ It acts as a senior staff engineer interrogating the idea one round at a time.
 
 The questioning is specific (names the actual edge case, not "have you thought
 about edge cases?"), offers concrete options with tradeoffs, and challenges
-politely. It adapts round count to feature size and stops when the user says to
-pick sensible defaults.
+politely. Question count adapts to feature size, since the generator leaves a
+domain empty when nothing is open, and the main agent stops when the user says
+to pick sensible defaults.
+
+## Test results
+
+`tests/question-gen/` measures the question generator on a fixed seed idea
+(judge: Opus). Three arms have been run, all pilots (1–2 reps; five is the bar):
+
+| arm | useful questions | offbase / domain | non-redundant |
+|-----|-----------------:|-----------------:|--------------:|
+| one inline Opus, ≤4 per dimension (old Phase 2) | 24 | 0.12 | 0.99 |
+| eight Sonnet subagents, one per domain | 44 | 0.50 | 0.94 |
+| **one Opus subagent, all domains (current)** | **31.5** | **0.19** | **0.99** |
+
+The current design keeps most of the fan-out's coverage gain at the inline
+arm's redundancy and invented-premise rates, with one subagent call and no
+merge step. The one recurring miss is a question that presumes webhooks and
+activity feeds exist; the Phase 1b background section is the intended fix and
+the fixture does not yet include one.
+
+## Install
+
+Symlink the skill folder into `~/.claude/skills/` and the agent definition into
+`~/.claude/agents/`, then restart Claude Code so the agent type is loaded:
+
+```
+ln -s "$PWD/feature-planner" ~/.claude/skills/feature-planner
+ln -s "$PWD/feature-planner/agents/fp-question-gen.md" ~/.claude/agents/fp-question-gen.md
+```

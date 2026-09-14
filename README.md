@@ -8,3 +8,27 @@ These are various skills I've made for my workflow. I don't claim their the best
 - acks-design-concepts: Generate genuinely divergent UI/UX design options instead of the same idea under different names.
 - jacks-executing-plans: Execute an already-reviewed implementation plan with todo tracking and per-task verification.
 - feature-planner: Write a plan file by breaking down a feature request and then asking as series of questions about the implementation.
+
+## Install
+
+For Claude Code, user scope only. Run the script for your platform from the repo root and pick the skills you want (defaults to all; existing copies are overwritten):
+
+```sh
+./install.sh              # macOS / Linux
+```
+
+```powershell
+.\install.ps1             # Windows
+```
+
+Skills are copied to `~/.claude/skills/<name>/`, and any agent a skill ships (such as feature-planner's `fp-question-gen`) is copied to `~/.claude/agents/`.
+
+To remove them, run the same script with the uninstall flag and select the skills to remove:
+
+```sh
+./install.sh --uninstall
+```
+
+```powershell
+.\install.ps1 -Uninstall
+```

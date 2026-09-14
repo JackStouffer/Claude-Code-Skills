@@ -51,31 +51,3 @@ about edge cases?"), offers concrete options with tradeoffs, and challenges
 politely. Question count adapts to feature size, since the generator leaves a
 domain empty when nothing is open, and the main agent stops when the user says
 to pick sensible defaults.
-
-## Test results
-
-`tests/feature-planner/question-gen/` (at the repo root) measures the question
-generator on a fixed seed idea
-(judge: Opus). Three arms have been run, all pilots (1–2 reps; five is the bar):
-
-| arm | useful questions | offbase / domain | non-redundant |
-|-----|-----------------:|-----------------:|--------------:|
-| one inline Opus, ≤4 per dimension (old Phase 2) | 24 | 0.12 | 0.99 |
-| eight Sonnet subagents, one per domain | 44 | 0.50 | 0.94 |
-| **one Opus subagent, all domains (current)** | **31.5** | **0.19** | **0.99** |
-
-The current design keeps most of the fan-out's coverage gain at the inline
-arm's redundancy and invented-premise rates, with one subagent call and no
-merge step. The one recurring miss is a question that presumes webhooks and
-activity feeds exist; the Phase 1b background section is the intended fix and
-the fixture does not yet include one.
-
-## Install
-
-Symlink the skill folder into `~/.claude/skills/` and the agent definition into
-`~/.claude/agents/`, then restart Claude Code so the agent type is loaded:
-
-```
-ln -s "$PWD/feature-planner" ~/.claude/skills/feature-planner
-ln -s "$PWD/feature-planner/agents/fp-question-gen.md" ~/.claude/agents/fp-question-gen.md
-```

@@ -14,6 +14,9 @@ step is redundant for him — it re-litigates decisions already settled.
 It keeps the execution benefits — todo tracking, exact step-following, per-task
 verification — and drops only the upfront plan review.
 
+The correct feature branch is set up before this skill runs. It does not create
+worktrees, switch or create branches, make commits, or push to remotes.
+
 1. **Load the plan** and set up task tracking. It probes for whatever tracking
    tool the session exposes (`TaskCreate` family, then `TodoWrite`, then an
    inline checklist) rather than assuming one exists.
@@ -25,9 +28,3 @@ verification — and drops only the upfront plan review.
 Skipping the *plan review* is the only thing dropped — per-task verifications
 and the final test pass are not skipped. It stops and asks rather than guessing
 when blocked.
-
-## Git is Jack's job
-
-The correct feature branch is set up before this skill runs. It does not create
-worktrees, switch or create branches, or make commits — committing, pushing, and
-branch integration are left to Jack.

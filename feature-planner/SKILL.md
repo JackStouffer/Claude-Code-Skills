@@ -22,6 +22,8 @@ Bugs baked into a bad spec are the hardest to fix. Interrogating a feature befor
 
 ## Workflow
 
+**Waiting on dispatched subagents.** Whenever a phase dispatches a background subagent (Phases 2, 4, and 5), wait for it with `TaskOutput(task_id, block=true, timeout=300000)` — a five-minute block — not a `sleep`. Re-block if it's still running when the timeout returns.
+
 ### Phase 1: Receive the seed idea
 
 The user gives you a rough description of what they want. Read it carefully. Identify:
@@ -81,10 +83,10 @@ When questioning is done (the user signals they're satisfied, or you've covered 
 
 Then ask for explicit confirmation: "Does this capture everything correctly? Anything to add, change, or remove before I generate the plan?"
 
-- If the user requests changes, update `plan-notes.md`, re-emit the full consolidated restatement, and ask again. Loop until they confirm.
+- If the user requests changes, update `plan-notes.md`, then ask again. Loop until they confirm.
 - Only proceed once the user explicitly confirms.
 
-On confirmation, write the final consolidated spec into `plan-notes.md` under a `## Consolidated spec (confirmed)` section. This is the single, self-contained input for the next phase.
+On confirmation, continue.
 
 ### Phase 4: Produce the plan in a fresh context
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Install skills to ~/.claude/skills/ (and their agents/*.md to ~/.claude/agents/).
-# Usage: ./install.sh [--uninstall]   -- interactive, defaults to all skills.
+# Install skills to ~/.claude/skills/ (and agents/*.md to ~/.claude/agents/).
+# Usage: ./install.sh [--uninstall] [skill ...]  (no names => interactive prompt)
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -8,7 +8,14 @@ SKILLS_DEST="$HOME/.claude/skills"
 AGENTS_DEST="$HOME/.claude/agents"
 
 UNINSTALL=false
-[ "${1:-}" = "--uninstall" ] && UNINSTALL=true
+named=()
+for arg in "$@"; do
+  if [ "$arg" = "--uninstall" ]; then
+    UNINSTALL=true
+  else
+    named+=("$arg")
+  fi
+done
 
 # Discover skills: any top-level dir containing a SKILL.md.
 skills=()
@@ -18,26 +25,41 @@ done
 [ "${#skills[@]}" -eq 0 ] && { echo "No skills found in $REPO_DIR"; exit 1; }
 
 action=$([ "$UNINSTALL" = true ] && echo "Uninstall" || echo "Install")
-echo "$action which skills?"
-for i in "${!skills[@]}"; do
-  printf "  %d) %s\n" "$((i + 1))" "${skills[$i]}"
-done
-printf "Enter numbers (comma-separated), or 'all' [all]: "
-read -r reply
-reply="${reply:-all}"
 
 selected=()
-if [ "$reply" = "all" ]; then
-  selected=("${skills[@]}")
-else
-  IFS=', ' read -r -a picks <<< "$reply"
-  for p in "${picks[@]}"; do
-    if [[ "$p" =~ ^[0-9]+$ ]] && [ "$p" -ge 1 ] && [ "$p" -le "${#skills[@]}" ]; then
-      selected+=("${skills[$((p - 1))]}")
+if [ "${#named[@]}" -gt 0 ]; then
+  # Non-interactive: install/uninstall the named skills.
+  for name in "${named[@]}"; do
+    found=false
+    for s in "${skills[@]}"; do [ "$s" = "$name" ] && found=true && break; done
+    if [ "$found" = true ]; then
+      selected+=("$name")
     else
-      echo "Ignoring invalid choice: $p" >&2
+      echo "Unknown skill: $name (available: ${skills[*]})" >&2
+      exit 1
     fi
   done
+else
+  echo "$action which skills?"
+  for i in "${!skills[@]}"; do
+    printf "  %d) %s\n" "$((i + 1))" "${skills[$i]}"
+  done
+  printf "Enter numbers (comma-separated), or 'all' [all]: "
+  read -r reply
+  reply="${reply:-all}"
+
+  if [ "$reply" = "all" ]; then
+    selected=("${skills[@]}")
+  else
+    IFS=', ' read -r -a picks <<< "$reply"
+    for p in "${picks[@]}"; do
+      if [[ "$p" =~ ^[0-9]+$ ]] && [ "$p" -ge 1 ] && [ "$p" -le "${#skills[@]}" ]; then
+        selected+=("${skills[$((p - 1))]}")
+      else
+        echo "Ignoring invalid choice: $p" >&2
+      fi
+    done
+  fi
 fi
 [ "${#selected[@]}" -eq 0 ] && { echo "Nothing selected."; exit 0; }
 

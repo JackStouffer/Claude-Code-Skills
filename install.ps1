@@ -1,12 +1,17 @@
 <#
 Install (or uninstall) these skills into your user-scope Claude Code config.
-  .\install.ps1              interactive install, defaults to all skills
-  .\install.ps1 -Uninstall   interactive uninstall
+  .\install.ps1                      interactive install, defaults to all skills
+  .\install.ps1 -Uninstall           interactive uninstall
+  .\install.ps1 feature-planner ...  install just the named skills, no prompt
+  .\install.ps1 -Uninstall foo bar   uninstall just the named skills, no prompt
 Skills go to ~\.claude\skills\<name>\; any agents\*.md a skill carries go to
 ~\.claude\agents\. Existing copies are overwritten.
 #>
 [CmdletBinding()]
-param([switch]$Uninstall)
+param(
+  [switch]$Uninstall,
+  [Parameter(ValueFromRemainingArguments = $true)][string[]]$Named
+)
 
 $ErrorActionPreference = 'Stop'
 $RepoDir     = $PSScriptRoot
@@ -20,22 +25,33 @@ $skills = Get-ChildItem -Path $RepoDir -Directory |
 if ($skills.Count -eq 0) { Write-Error "No skills found in $RepoDir"; exit 1 }
 
 $action = if ($Uninstall) { 'Uninstall' } else { 'Install' }
-Write-Host "$action which skills?"
-for ($i = 0; $i -lt $skills.Count; $i++) {
-  Write-Host ("  {0}) {1}" -f ($i + 1), $skills[$i])
-}
-$reply = Read-Host "Enter numbers (comma-separated), or 'all' [all]"
-if ([string]::IsNullOrWhiteSpace($reply)) { $reply = 'all' }
 
 $selected = @()
-if ($reply -eq 'all') {
-  $selected = $skills
-} else {
-  foreach ($p in ($reply -split '[,\s]+' | Where-Object { $_ })) {
-    if ($p -match '^\d+$' -and [int]$p -ge 1 -and [int]$p -le $skills.Count) {
-      $selected += $skills[[int]$p - 1]
+if ($Named) {
+  foreach ($name in $Named) {
+    if ($skills -contains $name) {
+      $selected += $name
     } else {
-      Write-Warning "Ignoring invalid choice: $p"
+      Write-Error "Unknown skill: $name (available: $($skills -join ', '))"; exit 1
+    }
+  }
+} else {
+  Write-Host "$action which skills?"
+  for ($i = 0; $i -lt $skills.Count; $i++) {
+    Write-Host ("  {0}) {1}" -f ($i + 1), $skills[$i])
+  }
+  $reply = Read-Host "Enter numbers (comma-separated), or 'all' [all]"
+  if ([string]::IsNullOrWhiteSpace($reply)) { $reply = 'all' }
+
+  if ($reply -eq 'all') {
+    $selected = $skills
+  } else {
+    foreach ($p in ($reply -split '[,\s]+' | Where-Object { $_ })) {
+      if ($p -match '^\d+$' -and [int]$p -ge 1 -and [int]$p -le $skills.Count) {
+        $selected += $skills[[int]$p - 1]
+      } else {
+        Write-Warning "Ignoring invalid choice: $p"
+      }
     }
   }
 }

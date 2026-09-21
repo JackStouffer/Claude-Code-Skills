@@ -9,6 +9,7 @@ These are various skills I've made for my workflow. I don't claim their the best
 - jacks-executing-plans: Execute an already-reviewed implementation plan with todo tracking and per-task verification.
 - feature-planner: Write a plan file by breaking down a feature request and then asking as series of questions about the implementation.
 - jacks-plan-splitter: Break a large implementation plan into smaller, independently executable sub-plans, each leaving the app in a working, verifiable state.
+- fix-merge-conflicts: Resolve the merge conflicts in the current working tree by combining the intent of both branches — code edits only, no git commands.
 
 ## Install
 

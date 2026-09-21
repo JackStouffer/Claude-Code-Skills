@@ -81,9 +81,11 @@ Record what was *decided*, not what was *discussed*. This file must be complete 
 
 When questioning is done (the user signals they're satisfied, or you've covered the dimensions that matter), do NOT go straight to the plan. First, read `plan-notes.md` back and emit **one consolidated restatement of the entire spec** in a single message: every goal, non-goal, behavior, edge-case decision, tradeoff chosen, and open question, gathered in one place.
 
+This consolidated restatement is a chat message only, for the user to confirm. Do NOT write it to `plan-notes.md` — the notes already hold these decisions domain by domain, and duplicating them there just creates a second, drifting copy. Only the user's changes and corrections get written back.
+
 Then ask for explicit confirmation: "Does this capture everything correctly? Anything to add, change, or remove before I generate the plan?"
 
-- If the user requests changes, update `plan-notes.md`, then ask again. Loop until they confirm.
+- If the user requests changes, write the changes and corrections into `plan-notes.md`, then ask again. Loop until they confirm.
 - Only proceed once the user explicitly confirms.
 
 On confirmation, continue.

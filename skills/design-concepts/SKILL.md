@@ -1,5 +1,5 @@
 ---
-name: jacks-design-concepts
+name: design-concepts
 description: Use when asked for multiple UI/UX design options, alternatives, or explorations - "give me some designs for", "redesign this page", "toolbar layouts", "button interactions/animations", "a few concepts for". Beats the mode collapse where every option turns out to be the same idea with different names.
 ---
 
@@ -14,7 +14,7 @@ Beat collapse with three levers, in order of impact:
 2. **Seeded spec selection** — one random string per agent. The agent decomposes the design into decision points, enumerates options per point, and picks each option by arithmetic on a segment of the seed. The seed is a source to sample from, never a vibe to interpret, and it never reaches the design step as text.
 3. **A diversity referee** — one agent reads all concepts, flags convergence, and forces pivots.
 
-Why a seed: left to "be creative," a model slides back to its highest-probability default. What moves a model off that default is a per-output *specification* it must visibly satisfy (Zhang, Xin & Zhong 2026); a bare random string in the prompt does little on its own. Here the seed exists only to pick that specification. The arithmetic runs in python, so the string's length and form do not matter, and the seed is generated externally so parallel agents cannot correlate. See the README for sources and `tests/jacks-design-concepts/` in the skills repo for the measured baseline.
+Why a seed: left to "be creative," a model slides back to its highest-probability default. What moves a model off that default is a per-output *specification* it must visibly satisfy (Zhang, Xin & Zhong 2026); a bare random string in the prompt does little on its own. Here the seed exists only to pick that specification. The arithmetic runs in python, so the string's length and form do not matter, and the seed is generated externally so parallel agents cannot correlate. See the README for sources and `tests/design-concepts/` in the skills repo for the measured baseline.
 
 All grounded in the existing project's design language so concepts stay compatible with the codebase while still being distinct from each other.
 

@@ -1,4 +1,4 @@
-# jacks-plan-splitter
+# plan-splitter
 
 A skill for breaking a large implementation plan into smaller, independently
 executable sub-plans, each of which leaves the application in a working, testable

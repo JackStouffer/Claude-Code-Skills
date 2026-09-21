@@ -1,4 +1,4 @@
-# jacks-executing-plans
+# executing-plans
 
 A skill for executing an already-reviewed implementation plan directly, with
 progress tracking and per-task verification.

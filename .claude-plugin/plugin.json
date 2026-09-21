@@ -1,0 +1,10 @@
+{
+  "name": "jacks-skills",
+  "description": "Jack's personal collection of Claude Code skills for planning, executing, and reviewing software work.",
+  "author": {
+    "name": "Jack Stouffer"
+  },
+  "homepage": "https://github.com/JackStouffer/Claude-Code-Skills",
+  "repository": "https://github.com/JackStouffer/Claude-Code-Skills.git",
+  "license": "MIT"
+}

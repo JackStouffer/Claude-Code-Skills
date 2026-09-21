@@ -35,7 +35,7 @@ tests/feature-planner/
 
 Only the reusable harness is committed. The prompt is derived from `SKILL.md` and
 `plan-structure.md` every run so it cannot drift. Run outputs and the write-up are scratch — what survives a
-run is the decision and the numbers, recorded in `../../feature-planner/README.md`.
+run is the decision and the numbers, recorded in `../../skills/feature-planner/README.md`.
 
 ## Why blind, and why the plan file has no MODEL line
 
@@ -72,7 +72,7 @@ arms and across reps. Pick one strong judge model (Opus) and use it for every re
    `{{OUT_PATH}}` = `runs/rep-N/judge.json`.
 3. `python3 score.py`.
 4. Write `RESULTS.md`: judge model, reps, the two tables, reading, decision. Then
-   carry the decision and the numbers into `../../feature-planner/README.md`;
+   carry the decision and the numbers into `../../skills/feature-planner/README.md`;
    `RESULTS.md` is scratch.
 
 ## What the numbers mean
@@ -97,7 +97,7 @@ Adopt Sonnet only if, over ≥5 reps: Sonnet's accept-rate ≈ Opus's (and high)
 Sonnet fabricates no more than Opus, and the head-to-head is roughly even (Sonnet
 not preferred-against in a clear majority of reps). Any of: Sonnet dropping
 required sections, inventing requirements, or losing most head-to-heads → keep
-Opus. Record the outcome in `../../feature-planner/README.md`.
+Opus. Record the outcome in `../../skills/feature-planner/README.md`.
 
 ## Changing the fixture
 

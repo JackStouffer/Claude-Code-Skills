@@ -1,4 +1,4 @@
-# jacks-design-concepts
+# design-concepts
 
 A skill for generating several different UI/UX design concepts from one prompt.
 
@@ -81,7 +81,7 @@ Hamming distance so no two concepts agree on any axis. The current skill instead
 lets each agent enumerate its own options and draw independently, which offers no
 such guarantee. On paper the shared-table version is strictly better.
 
-It was tested before adopting it. `tests/jacks-design-concepts/` (at the repo
+It was tested before adopting it. `tests/design-concepts/` (at the repo
 root) holds a reusable divergence suite: a
 fixed brief, the baseline Phase A prompt, a judge rubric, and a scorer. Proposal
 variants and run outputs are not committed; the record of a run is this section.
@@ -127,7 +127,7 @@ micro-interaction/animation briefs, and proposed a second, motion-specific palet
 seed-selected per brief. This is exactly the narrower-brief case flagged above, so it
 was tested before adopting.
 
-The 2026-09-11 micro run used `tests/jacks-design-concepts/brief-micro.md` — the click-to-confirm animation
+The 2026-09-11 micro run used `tests/design-concepts/brief-micro.md` — the click-to-confirm animation
 for a single "Save" icon button, N=3, greenfield — 5 reps of 3 concepts on Opus 4.8,
 one judge per rep. Two arms differed only in which palette the three territories came
 from: `current-micro` (the current layout-shaped palette) vs `motion-palette` (the

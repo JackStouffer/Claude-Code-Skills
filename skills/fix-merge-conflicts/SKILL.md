@@ -6,7 +6,7 @@ description: >
   read enough of both branches to understand why each side changed the code, then write the
   version that keeps both intents. Do not make blind edits. Use when a merge, rebase, or
   cherry-pick has left conflict markers in the tree, or the user asks to fix / resolve merge
-  conflicts. Triggers on /fix-merge-conflicts.
+  conflicts. Triggers on /jacks-skills:fix-merge-conflicts.
 ---
 
 # Fix Merge Conflicts — Combine Intent, Don't Pick a Side

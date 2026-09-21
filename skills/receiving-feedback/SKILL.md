@@ -1,5 +1,5 @@
 ---
-name: jacks-receiving-feedback
+name: receiving-feedback
 description: >
   Verify feedback against the real sources before you act on it. For each claim, look for
   evidence that refutes it as hard as for evidence that confirms it. Check the real sources:
@@ -8,7 +8,7 @@ description: >
   the exact places to change. If it is wrong, cite the source that refutes it. Use when you
   receive review feedback on code, a plan, a spec, or a design doc. Use it especially for
   feedback that sounds plausible but that you have not verified. Triggers on
-  /jacks-receiving-feedback. Pass the feedback and a pointer to its subject as arguments.
+  /jacks-skills:receiving-feedback. Pass the feedback and a pointer to its subject as arguments.
 ---
 
 # Receiving Feedback — Adversarial Verification

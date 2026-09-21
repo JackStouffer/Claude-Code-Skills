@@ -19,7 +19,7 @@ update this script.
 import os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SKILL_DIR = f"{HERE}/../../feature-planner"
+SKILL_DIR = f"{HERE}/../../skills/feature-planner"
 skill = open(f"{SKILL_DIR}/SKILL.md").read()
 
 # First "> Read" blockquote run is Phase 4's; Phase 5's comes later.

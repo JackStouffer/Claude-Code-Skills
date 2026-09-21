@@ -57,9 +57,9 @@ Record only what you verified in the source, with file paths. Where you looked a
 
 ### Phase 2: Generate and ask questions
 
-**Generate.** Create an output dir (`mktemp -d`). Dispatch the `fp-question-gen` agent (Opus, medium effort, Write tool only). It cannot read files, so build its prompt from `question-gen-prompt.md` in this skill's folder: paste the full contents of `plan-notes.md` where the file indicates and fill in the output dir. The file also lists the question domains, in the order to ask them. The agent writes one JSON file per domain and replies with the paths.
+**Generate.** Create an output dir (`mktemp -d`). Dispatch the `jacks-skills:fp-question-gen` agent (Opus, medium effort, Write tool only) — it ships with this plugin. It cannot read files, so build its prompt from `question-gen-prompt.md` in this skill's folder: paste the full contents of `plan-notes.md` where the file indicates and fill in the output dir. The file also lists the question domains, in the order to ask them. The agent writes one JSON file per domain and replies with the paths.
 
-If `fp-question-gen` is not an available agent type, stop and tell the user to install `agents/fp-question-gen.md` from this skill's folder into `~/.claude/agents/` and restart the session.
+If `jacks-skills:fp-question-gen` is not an available agent type, stop and tell the user that the `jacks-skills` plugin (which bundles this agent) is not fully installed or enabled, and to reinstall/enable it and restart the session.
 
 **Ask.** Read each domain's JSON file. Go through the domains in the order listed in `question-gen-prompt.md` and ask each domain's questions with the `AskUserQuestion` tool (or the equivalent in your environment), up to 4 questions per call, mapping `header`, `question`, and `options` straight through. Ask every generated question; the generator already trimmed to what the plan needs. Skip a domain whose array is empty.
 

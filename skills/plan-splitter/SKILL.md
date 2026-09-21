@@ -1,5 +1,5 @@
 ---
-name: jacks-plan-splitter
+name: plan-splitter
 description: >
   Use when an existing implementation plan is too large for accurate single-session execution.
   Triggers on: "split this plan", "break up the plan", "plan is too big", "chunk the plan",

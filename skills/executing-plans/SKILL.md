@@ -1,5 +1,5 @@
 ---
-name: jacks-executing-plans
+name: executing-plans
 description: Execute an already-verified implementation plan with progress
   tracking, skipping the upfront critical plan review. Use when you have a plan
   document that has already been reviewed across several rounds and want to run
@@ -18,7 +18,7 @@ Jack manages git himself. The correct feature branch is already set up before
 this skill runs. **Do not** create worktrees, switch or create branches, check
 which branch you are on, or make commits — leave all git operations to Jack.
 
-**Announce at start:** "I'm using jacks-executing-plans to implement this
+**Announce at start:** "I'm using jacks-skills:executing-plans to implement this
 pre-verified plan."
 
 **Do NOT** re-review the plan or raise plan-level concerns before starting.

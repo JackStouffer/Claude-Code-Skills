@@ -7,7 +7,7 @@ all eight domains from just the plan-notes prompt?**
 ## The design under test
 
 Phase 2 of the skill dispatches a single `fp-question-gen` subagent with the
-prompt in `../../../feature-planner/question-gen-prompt.md`: the full
+prompt in `../../../skills/feature-planner/question-gen-prompt.md`: the full
 `plan-notes.md` contents plus
 a description of each of the eight question domains. The subagent writes one JSON
 file of up to six questions per domain, and the main agent asks the union of them
@@ -21,8 +21,8 @@ every run so it cannot drift.
 
 - **Model:** Opus, **effort:** medium.
 - **Tools:** `Write` only. No `Read`, no `Bash`, no web. All context comes from
-  the prompt. Pinned in `../../../feature-planner/agents/fp-question-gen.md` (symlinked from
-  `.claude/agents/` in this repo and from `~/.claude/agents/`).
+  the prompt. Pinned in `../../../agents/fp-question-gen.md` (bundled with the
+  `jacks-skills` plugin, so it loads automatically when the plugin is installed).
 - **Output:** one JSON file per domain; the agent's only reply is the paths.
   Questions never touch the transcript.
 
@@ -71,7 +71,7 @@ Judge with one strong model (Opus), same judge for every rep.
    `runs/rep-N/*.json` paths), and `{{OUT_PATH}}` = `runs/rep-N/judge.json`.
 3. `python3 score.py` (or `python3 score.py runs-control` etc. for an older arm).
 4. Write `RESULTS.md`, then carry the decision + numbers into
-   `../../../feature-planner/README.md`.
+   `../../../skills/feature-planner/README.md`.
 
 Five reps is the standard (single reps lie); a 1–2 rep pilot is fine to see
 direction, labelled as a pilot.
@@ -99,4 +99,4 @@ useful close to total (little padding), offbase near zero, non-redundant near
 arms are the reference points: the eight-Sonnet fan-out had the coverage
 (44 useful) but paid in redundancy and invented premises; the single inline Opus
 was clean but thin (24 useful). Record the outcome in
-`../../../feature-planner/README.md`.
+`../../../skills/feature-planner/README.md`.

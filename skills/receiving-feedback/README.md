@@ -1,4 +1,4 @@
-# jacks-receiving-feedback
+# receiving-feedback
 
 A skill for verifying review feedback against the real sources before acting on
 it, reporting a verdict per claim.

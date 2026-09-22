@@ -18,7 +18,9 @@ Why a seed: left to "be creative," a model slides back to its highest-probabilit
 
 All grounded in the existing project's design language so concepts stay compatible with the codebase while still being distinct from each other.
 
-**REQUIRED SUB-SKILL:** every concept agent must apply `frontend-design:frontend-design` for aesthetic quality and anti-templating. This skill orchestrates divergence; that one governs the design itself.
+**REQUIRED SUB-SKILL:** every concept and render must apply `frontend-design` for aesthetic quality and anti-templating — this skill orchestrates divergence; that one governs the design itself. But the concept/render agents are forked subagents and the Skill tool hangs in a fork, so they cannot invoke it. Instead **you (the orchestrator, in the main context) read frontend-design's `SKILL.md` once and paste its full text into every concept and render prompt** (see Phase 2), and those agents apply it inline. Never tell a subagent to call the Skill tool.
+
+**DEDICATED AGENTS:** dispatch concepts as `jacks-skills:dc-concept` and renders as `jacks-skills:dc-render` — not `general-purpose`. Both have no Read/Glob tool, so a concept agent structurally cannot read a sibling's spec or a shared seed plan; all context reaches them through the prompt. That isolation is what the seeds act on.
 
 ## When to use
 
@@ -58,11 +60,20 @@ Before generating, read the project's real design language so concepts don't cla
 
 Skip for greenfield/no-project work; the concept agents invent the palette per `frontend-design`.
 
+### 1.5. Load the frontend-design guidance (once)
+The forked subagents cannot call the Skill tool, so you fetch the guidance for them. Read frontend-design's `SKILL.md` and hold its full text to paste into every concept and render prompt:
+```bash
+ls -t ~/.claude*/plugins/cache/*/frontend-design/*/skills/frontend-design/SKILL.md 2>/dev/null | head -1
+```
+Read that file (Read works in any context — only the Skill *tool* hangs in a fork). If nothing resolves, invoke `Skill("frontend-design")` yourself here in the main context and transcribe its guidance instead. Either way, the exact text becomes the `[frontend-design guidance]` block in the prompts below.
+
 ### 2. Generate seeds + assign territories
 Generate one real random string per concept — do not invent them yourself (models invent low-entropy, correlated strings). 32 chars = 8 four-char segments, enough for 7 seeded decision points:
 ```bash
 for i in $(seq 1 N); do printf 'seed %d: ' "$i"; openssl rand -base64 24; done
 ```
+Keep the seeds and axis assignments in your own context only. **Do not write a combined plan of all seeds/axes into `design-concepts/<slug>/` or anywhere a concept prompt points** — a concept agent that reads every seed is no longer isolated. (The `dc-concept` agent has no Read tool, so it cannot read such a file anyway; this keeps you from creating the leak in the first place.)
+
 Then assign each concept a **distinct primary divergence axis** from this palette (never repeat an axis within a batch):
 - **Spatial model:** radial / timeline / ledger-table / infinite-canvas / stacked-focus / split-pane
 - **Interaction model:** direct manipulation / command-driven / progressive disclosure / gesture / hover-reveal / keyboard-first
@@ -74,56 +85,30 @@ Then assign each concept a **distinct primary divergence axis** from this palett
 The territory is the primary anti-collapse lever; the seed adds cross-agent variety on every other decision point.
 
 ### 3. Phase A — parallel concept agents (one per concept)
-Dispatch N agents in a single message, on the default model (do not downgrade — the decompose/enumerate step needs a strong model). Each gets the brief, the house-style brief, its own seed, its own assigned axis, and the template below. Each writes ONE spec file to `design-concepts/<slug>/NN-name.md`.
+Dispatch N `jacks-skills:dc-concept` agents **in a single message** (one Task block, N tool calls) — not `general-purpose`, and not staggered across turns. The agent runs on a strong model and carries the full seeded procedure and spec format in its own definition; your prompt supplies only the variables below. Each writes ONE spec file to `design-concepts/<slug>/NN-name.md`.
 
-Concept-agent prompt template:
+To collect results, call `TaskOutput` with `blocking=true` on each dispatched agent — that blocks until the agent finishes and hands you its result. Do NOT sleep, schedule a wakeup, or emit a handoff to wait for background agents; blocking `TaskOutput` is the wait. (Same for the referee in Phase 4 and the renders in Phase 5.)
+
+Per-agent prompt (fill the brackets; the procedure itself lives in the dc-concept agent):
 ```
-You are generating ONE original UI concept for: [exact brief].
+Generate ONE original UI concept for: [exact brief].
 
 Existing project design language (stay compatible, but be distinct from other
 concepts): [house-style brief, or "greenfield - invent per frontend-design"]
 
-Your assigned divergence axis — this is decision point 0, fixed to your territory;
-differ here from any default: [assigned axis + short instruction].
+Your assigned divergence axis (decision point 0, fixed to your territory — differ
+here from any default): [assigned axis + short instruction].
 
-Seed (your randomness source — use exactly as given, do NOT invent your own):
-[random string]
+Seed (use exactly as given): [random string]
 
-Apply seeded spec selection. Plan every divergent choice from the seed BEFORE
-you design:
-1. Decompose this brief into 5-7 seeded decision points: the structural choices
-   that would make two concepts for THIS brief materially different (for a
-   layout: hierarchy, navigation model, grouping, density, control placement...;
-   for a micro-interaction: motion primitive, feedback modality, state cue,
-   spatial anchor...). Not magnitudes.
-2. For each, enumerate 3-6 concrete candidate options you would actually be
-   willing to build — each ships 1-in-n of the time, so no straw men — and push
-   past the obvious one. Write the complete options table into the spec file NOW,
-   before step 3.
-3. Compute the picks with this command (never in your head; equal weights only):
-   python3 -c 'import sys;s=sys.argv[1];print([sum(map(ord,s[4*i:4*i+4]))%int(n) for i,n in enumerate(sys.argv[2:])])' "<seed>" <count_dp1> <count_dp2> ...
-   Decision point k uses seed chars [4(k-1), 4k); indices are 0-based. Fill the
-   chosen column from the output. A seed-picked option stands even if another
-   "feels better"; do not reorder options after seeing the index.
-4. Build the concept on that exact combination.
+Write your spec to: design-concepts/<slug>/NN-name.md
 
-Apply the frontend-design skill for aesthetic quality — no templated defaults.
-
-Write design-concepts/<slug>/NN-name.md with:
-- Concept name
-- Core idea (1-2 sentences)
-- Key visual + interaction principles
-- ASCII wireframe
-- ## Seed-derived decisions — REQUIRED table, one row per seeded decision point:
-  | # | decision point | options (0-based) | seed segment | sum(ASCII) mod n | chosen |
-  plus the exact command you ran and its output.
-- Why this diverges from the default solution and from the assigned-axis baseline
-
-Return only the concept name and one-line core idea.
+[frontend-design guidance]
+<paste the full frontend-design SKILL.md text loaded in step 1.5 here>
 ```
 
-### 3.5. Verify each seed table (orchestrator, mechanical)
-You hold every agent's seed and each spec file carries its options table. Before the referee runs, re-derive the picks yourself and assert they match — this turns "the chosen column disagrees with the index" from a red flag into a checked precondition. For each spec file, read the per-decision-point option counts (`n`) from its table, then run the same one-liner with that agent's seed:
+### 3.5. Verify each seed table (orchestrator, mechanical — do NOT delegate)
+You hold every agent's seed and each spec file carries its options table. **Run this check yourself in the main context, before and separately from the referee — never fold it into the referee agent or any other subagent.** The point is an independent re-derivation by the party that holds the seeds; a subagent self-reporting "all pass" is not that. Re-derive the picks yourself and assert they match — this turns "the chosen column disagrees with the index" from a red flag into a checked precondition. For each spec file, read the per-decision-point option counts (`n`) from its table, then run the same one-liner with that agent's seed:
 ```bash
 python3 -c 'import sys;s=sys.argv[1];print([sum(map(ord,s[4*i:4*i+4]))%int(n) for i,n in enumerate(sys.argv[2:])])' "<that agent's seed>" <count_dp1> <count_dp2> ...
 ```
@@ -140,10 +125,10 @@ pivot that keeps its seed/axis spirit but makes it clearly distinct. Then output
 ranked list of the most diverse, highest-quality concepts, with pivots applied and
 a one-line rationale each.
 ```
-Apply the referee's pivots (re-dispatch the pivoted concept agent if the pivot is substantial).
+Apply the referee's pivots (re-dispatch the pivoted `dc-concept` agent if the pivot is substantial).
 
 ### 5. Render the top picks
-Take the referee's top ~3. Dispatch an agent per concept to build a standalone, self-contained `design-concepts/<slug>/NN-name/index.html` (inline CSS/JS, no build step) applying `frontend-design`. Write a `design-concepts/<slug>/INDEX.html` gallery linking them.
+Take the referee's top ~3. Dispatch one `jacks-skills:dc-render` agent per concept (single message) to build a standalone, self-contained `design-concepts/<slug>/NN-name/index.html`. Each render agent has no Read tool, so **paste the chosen concept's full spec content into its prompt** (it cannot read the file itself), along with the house-style brief and the same `[frontend-design guidance]` block from step 1.5. Then write a `design-concepts/<slug>/INDEX.html` gallery linking them yourself.
 
 ### 6. Present
 Give the user the gallery path and a one-line summary per concept. Note that `design-concepts/` is scratch — add to `.gitignore` unless they want it committed.
@@ -166,6 +151,10 @@ Give the user the gallery path and a one-line summary per concept. Note that `de
 | Rendering all N to HTML | Spec-first; render only the top ~3 the referee keeps |
 | Ignoring house style | Concepts clash with the codebase and can't ship |
 | One agent generates all concepts sequentially | Isolation (separate agents) is what the seeds act on |
+| Telling a concept/render subagent to call the Skill tool for frontend-design | It hangs in a fork; paste frontend-design's text inline (step 1.5) and use `dc-concept`/`dc-render` |
+| Writing a shared all-seeds/axes plan into the scratch dir | Keep seeds in your context; a concept agent that reads every seed isn't isolated |
+| Dispatching concepts as `general-purpose` | Use `jacks-skills:dc-concept` — it has no Read/Glob, so it can't peek at siblings |
+| Folding the 3.5 seed check into the referee agent | Run it yourself in main, independently, before the referee |
 
 ## Red flags — you're collapsing
 

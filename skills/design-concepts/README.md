@@ -17,8 +17,8 @@ Three levers, in order of impact:
    string, decomposes the design into decision points, enumerates options per point,
    and selects each option by arithmetic on a segment of the seed — sampling, not
    interpreting. The string itself never reaches the design step.
-3. **A diversity referee.** One agent reads all concepts, flags convergence, forces
-   pivots.
+3. **A diversity referee.** One agent reads all concepts and cuts any too similar to
+   another.
 
 ## Research Basis
 

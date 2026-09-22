@@ -12,7 +12,7 @@ Asked for several design concepts, independent agents collapse to the same idea.
 Beat collapse with three levers, in order of impact:
 1. **Pre-assigned orthogonal territories** — each concept is handed a distinct design axis it MUST diverge on, so no two can grab the same default.
 2. **Seeded spec selection** — one random string per agent. The agent decomposes the design into decision points, enumerates options per point, and picks each option by arithmetic on a segment of the seed. The seed is a source to sample from, never a vibe to interpret, and it never reaches the design step as text.
-3. **A diversity referee** — one agent reads all concepts, flags convergence, and forces pivots.
+3. **A diversity referee** — one agent reads all concepts and cuts any that are too similar to another, gating what gets rendered.
 
 Why a seed: left to "be creative," a model slides back to its highest-probability default. What moves a model off that default is a per-output *specification* it must visibly satisfy (Zhang, Xin & Zhong 2026); a bare random string in the prompt does little on its own. Here the seed exists only to pick that specification. The arithmetic runs in python, so the string's length and form do not matter, and the seed is generated externally so parallel agents cannot correlate. See the README for sources and `tests/design-concepts/` in the skills repo for the measured baseline.
 
@@ -89,6 +89,7 @@ Dispatch N `jacks-skills:dc-concept` agents **in a single message** (one Task bl
 
 To collect results, call `TaskOutput` with `blocking=true` on each dispatched agent — that blocks until the agent finishes and hands you its result. Do NOT sleep, schedule a wakeup, or emit a handoff to wait for background agents; blocking `TaskOutput` is the wait. (Same for the referee in Phase 4 and the renders in Phase 5.)
 
+
 Per-agent prompt (fill the brackets; the procedure itself lives in the dc-concept agent):
 ```
 Generate ONE original UI concept for: [exact brief].
@@ -119,16 +120,14 @@ Give it all N spec files:
 ```
 Here are N UI concepts for [brief]. [paste/point to the N spec files]
 
-Identify any pair/group too similar in layout philosophy, interaction model,
-metaphor, or motion language. For each collision, pick one and propose a concrete
-pivot that keeps its seed/axis spirit but makes it clearly distinct. Then output a
-ranked list of the most diverse, highest-quality concepts, with pivots applied and
-a one-line rationale each.
+Check each concept against every other. Identify any pair/group too similar in
+layout philosophy, interaction model, metaphor, or motion language. When two
+concepts collide, cut one. Output the list of concepts that pass — every
+concept that is not a near-duplicate of another — with a one-line rationale each.
 ```
-Apply the referee's pivots (re-dispatch the pivoted `dc-concept` agent if the pivot is substantial).
 
-### 5. Render the top picks
-Take the referee's top ~3. Dispatch one `jacks-skills:dc-render` agent per concept (single message) to build a standalone, self-contained `design-concepts/<slug>/NN-name/index.html`. Each render agent has no Read tool, so **paste the chosen concept's full spec content into its prompt** (it cannot read the file itself), along with the house-style brief and the same `[frontend-design guidance]` block from step 1.5. Then write a `design-concepts/<slug>/INDEX.html` gallery linking them yourself.
+### 5. Render every concept that passed
+Dispatch one `jacks-skills:dc-render` agent per passing concept (single message) to build a standalone, self-contained `design-concepts/<slug>/NN-name/index.html`. Each render agent has no Read tool, so **paste the chosen concept's full spec content into its prompt** (it cannot read the file itself), along with the house-style brief and the same `[frontend-design guidance]` block from step 1.5. Then write a `design-concepts/<slug>/INDEX.html` gallery linking them yourself.
 
 ### 6. Present
 Give the user the gallery path and a one-line summary per concept. Note that `design-concepts/` is scratch — add to `.gitignore` unless they want it committed.
@@ -148,7 +147,7 @@ Give the user the gallery path and a one-line summary per concept. Note that `de
 | Stacking multiple random strings per agent | One seed is enough — 8 four-char segments cover 7 decision points |
 | Same axis given to two agents | Each concept gets a unique primary axis |
 | Skipping the referee | It's the cheapest collapse insurance; always run it |
-| Rendering all N to HTML | Spec-first; render only the top ~3 the referee keeps |
+| Rendering before the referee runs | Spec-first; render only the concepts that pass the referee (all of them, however many that is) |
 | Ignoring house style | Concepts clash with the codebase and can't ship |
 | One agent generates all concepts sequentially | Isolation (separate agents) is what the seeds act on |
 | Telling a concept/render subagent to call the Skill tool for frontend-design | It hangs in a fork; paste frontend-design's text inline (step 1.5) and use `dc-concept`/`dc-render` |
@@ -162,6 +161,5 @@ Give the user the gallery path and a one-line summary per concept. Note that `de
 - Every decision point resolved to its first/obvious option
 - Concepts share the same metaphor with different names ("Snap"/"Drop"/"Sling" = one idea)
 - Every concept has the same layout skeleton
-- The referee finds nothing to pivot (it should almost always find at least one collision)
 
 All mean: enforce the seeded procedure, strengthen the territory assignments, and re-run Phase A.

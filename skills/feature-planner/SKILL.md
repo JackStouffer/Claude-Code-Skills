@@ -92,11 +92,17 @@ On confirmation, continue.
 
 ### Phase 4: Produce the plan in a fresh context
 
-Dispatch a subagent (e.g. the Task tool) with an instruction like:
+Dispatch the `jacks-skills:fp-plan-writer` agent. Build its prompt inline: paste the full contents of `plan-notes.md` and the full contents of `plan-structure.md` (from this skill's folder), and give it the exact output path in the project root. Instruct it like:
 
-> Read `plan-notes.md` at `<exact path>`. It is a complete, confirmed feature spec. Using **only** that file as input, produce a feature plan and save it as a markdown file in the project root. Follow the plan structure in `plan-structure.md` in this skill's folder (read it at `<exact path>`) exactly. Do not ask questions; the spec is final.
+> Below is a complete, confirmed feature spec, followed by the plan structure to follow. Using **only** what is in this prompt, transform the spec into a feature plan and write it to `<exact output path>`. Follow the plan structure exactly. Do not ask questions and do not verify anything; the spec is final. Reply with only the path.
+>
+> --- SPEC (plan-notes.md) ---
+> `<full contents of plan-notes.md>`
+>
+> --- PLAN STRUCTURE (plan-structure.md) ---
+> `<full contents of plan-structure.md>`
 
-The subagent saves this plan as a markdown file in the project root so the user can reference it during implementation. Once the plan file is written, delete `plan-notes.md` right away. It was ephemeral scratch, and the plan supersedes it.
+Once the agent writes the plan file, delete `plan-notes.md` right away. It was ephemeral scratch, and the plan supersedes it.
 
 ### Phase 5: Correctness check
 

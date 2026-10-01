@@ -1,0 +1,23 @@
+#!/bin/sh
+# Rejects a commit that touches the mod's TypeScript (or its tooling) unless `npm run check` passes.
+set -eu
+
+staged=$(git diff --cached --name-only --diff-filter=ACMRD)
+ts_pattern='\.(ts|tsx)$|^(hooks|types|tests/review-board)/|^(package\.json|package-lock\.json|tsconfig\.json|eslint\.config\.js|\.prettierrc\.json|\.prettierignore)$'
+printf '%s\n' "$staged" | grep -Eq "$ts_pattern" || exit 0
+
+cd "$(git rev-parse --show-toplevel)"
+if [ ! -d node_modules ]; then
+  echo "pre-commit: TS files changed but node_modules is missing. Run npm install." >&2
+  exit 1
+fi
+if [ ! -d .claude-plugin/types ]; then
+  echo "pre-commit: laying the Claude Code types (npm run types)..." >&2
+  npm run --silent types
+fi
+
+# ponytail: checks the working tree, not the staged snapshot, so unstaged edits count; stash them first if that matters.
+if ! npm run --silent check; then
+  echo "pre-commit: TS checks failed; commit rejected. Fix them, or run npm run format for formatting errors." >&2
+  exit 1
+fi

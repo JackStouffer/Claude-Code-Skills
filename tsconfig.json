@@ -1,0 +1,16 @@
+{
+  // The engine writes this base (and the claude-code types it names) on every --plugin-dir load; `npm run types` lays it.
+  "extends": "./.claude-plugin/types/tsconfig.json",
+  "compilerOptions": {
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": ["hooks", "types", "tests"]
+}

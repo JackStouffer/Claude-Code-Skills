@@ -2,3 +2,5 @@
 *.pyc
 *.pyo
 .claude/
+.claude-plugin/types/
+node_modules/

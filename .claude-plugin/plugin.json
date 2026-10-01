@@ -6,5 +6,6 @@
   },
   "homepage": "https://github.com/JackStouffer/Claude-Code-Skills",
   "repository": "https://github.com/JackStouffer/Claude-Code-Skills.git",
-  "license": "MIT"
+  "license": "MIT",
+  "types": "./types/index.d.ts"
 }

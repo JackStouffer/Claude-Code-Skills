@@ -14,6 +14,26 @@ Once installed, each skill is invoked under the plugin namespace, e.g. `/jacks-s
 - `jacks-skills:test-audit`: Find low-value tests (tests no plausible bug would fail), report a verdict per test, and delete, rewrite, or merge them once approved.
 - `jacks-skills:fix-merge-conflicts`: Resolve the merge conflicts in the current working tree by combining the intent of both branches — code edits only, no git commands.
 
+## Review board (mod)
+
+When `/code-review`, `ce-code-review`, `ce-doc-review`, `ponytail-review`, `ponytail-audit` or `test-audit` finishes, its findings appear in a "Review findings" pane. `/review-board` opens the pane by hand. Each finding has three buttons:
+
+- **Ignore**: removes the finding from the board.
+- **receiving-feedback**: opens a new Ghostty tab in the same directory and starts a fresh session that runs `/jacks-skills:receiving-feedback` on the finding.
+- **receiving-code-review**: does the same with `/superpowers:receiving-code-review`.
+
+The new tab runs `claude-work` if your shell defines it, and `claude` if not. It passes on the current session's `--plugin-dir` flags. Outside Ghostty, the button starts a background subagent instead: it has its own context and is listed under tasks. A rerun of the same review replaces its earlier findings.
+
+## Development
+
+The mod is TypeScript. Run `npm install`, then:
+
+- `npm run types`: loads the plugin once so Claude Code writes its API types to `.claude-plugin/types/`. Run it again after a Claude Code update.
+- `npm run check`: type-check, lint, format check, and the mod's tests.
+- `npm run format`: apply Prettier.
+
+`npm install` also turns on the `.githooks/pre-commit` hook. It runs `npm run check` when a commit touches the TS code or its tooling, and it rejects the commit if a check fails.
+
 ## Install
 
 This repo is a Claude Code plugin marketplace. Add it once, then install the plugin:

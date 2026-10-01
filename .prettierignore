@@ -1,0 +1,6 @@
+.claude-plugin/types/
+package-lock.json
+*.md
+# The skill test suites hold recorded run output; only the mod's tests are code.
+tests/*
+!tests/review-board/

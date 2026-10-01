@@ -27,7 +27,7 @@ const ran = (exitCode: number, stdout = ''): { value: ProcessRunResult } => ({
 })
 
 // The host beneath the plugin: a session in /repo started as `claude --plugin-dir '/plug/a b'`.
-function host(on: On, variables: Record<string, string>, hasClaudeWork: boolean) {
+function host(on: On, variables: Record<string, string>, hasClaudeWork: boolean, canBackground = true) {
   mock.env(on, variables)
   const writes: Record<string, string> = {}
   const runs: string[][] = []
@@ -38,6 +38,7 @@ function host(on: On, variables: Record<string, string>, hasClaudeWork: boolean)
     runs.push([...e.argv])
     if (e.argv[0] === 'sh') return ran(0, 'claude --plugin-dir=/plug/a --model opus\n')
     if (e.argv.includes('command -v claude-work')) return ran(hasClaudeWork ? 0 : 1)
+    if (e.argv[2]?.includes(' --bg')) return ran(canBackground ? 0 : 1)
 
     return ran(0)
   })
@@ -101,8 +102,8 @@ test('the status line points back to the board, which /review-board opens with t
   await ui.unmount()
 })
 
-test('in Ghostty, a button opens a tab running claude-work with the parent plugin dirs', async ($, on) => {
-  const { writes, runs } = host(on, { TERM_PROGRAM: 'ghostty', SHELL: '/bin/zsh' }, true)
+test('a button starts a background session running claude-work with the parent plugin dirs', async ($, on) => {
+  const { writes, runs } = host(on, { SHELL: '/bin/zsh' }, true)
   await $.tool.call({ tool: 'ReportFindings', findings: [FINDING, { ...FINDING, summary: 'Second' }] })
 
   for (const surface of ['terminal', 'desktop'] as const) {
@@ -121,18 +122,20 @@ test('in Ghostty, a button opens a tab running claude-work with the parent plugi
     prompt?.startsWith('/jacks-skills:receiving-feedback Review finding from `code-review` at `src/app.py:12`'),
   ).toBe(true)
   expect(prompt).toContain('A 3-row page returns 2 rows')
-  const osascript = runs.find(argv => argv[0] === 'osascript')
-  expect(osascript?.[3]).toBe('/repo')
-  expect(osascript?.[4]).toBe(`claude-work --plugin-dir '/plug/a' "$(cat ${String(promptPath)})"\n`)
-  expect(await ui.find({ type: 'Text', text: 'sent to jacks-skills:receiving-feedback' })).toBeDefined()
+  expect(runs.at(-1)).toEqual([
+    '/bin/zsh',
+    '-ic',
+    `claude-work --bg --name 'receiving-feedback: Off-by-one drops the last row' --plugin-dir '/plug/a' "$(cat ${String(promptPath)})"`,
+  ])
+  expect(await ui.find({ type: 'Text', text: 'sent to jacks-skills:receiving-feedback (agents view)' })).toBeDefined()
 
   await ui.press({ key: String(ignore[1]?.key) })
   expect(await ui.find({ type: 'Text', text: /Second/ })).toBeUndefined()
   await ui.unmount()
 })
 
-test('without claude-work, the tab runs claude', async ($, on) => {
-  const { runs } = host(on, { TERM_PROGRAM: 'ghostty', SHELL: '/bin/bash' }, false)
+test('without claude-work, the background session runs claude', async ($, on) => {
+  const { runs } = host(on, { SHELL: '/bin/bash' }, false)
   await $.tool.call({ tool: 'ReportFindings', findings: [FINDING] })
 
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
@@ -140,12 +143,12 @@ test('without claude-work, the tab runs claude', async ($, on) => {
   await ui.press({ key: String(button?.key) })
 
   expect(runs.find(argv => argv[0] === '/bin/bash')).toEqual(['/bin/bash', '-ic', 'command -v claude-work'])
-  expect(runs.find(argv => argv[0] === 'osascript')?.[4]?.startsWith("claude --plugin-dir '/plug/a' ")).toBe(true)
+  expect(runs.at(-1)?.[2]?.startsWith("claude --bg --name 'receiving-code-review: Off-by-one")).toBe(true)
   await ui.unmount()
 })
 
-test('outside Ghostty, a button starts a background agent instead', async ($, on) => {
-  const { runs } = host(on, { TERM_PROGRAM: 'iTerm.app' }, true)
+test('when the background session fails to start, a button starts a background agent instead', async ($, on) => {
+  host(on, {}, true, false)
   const spawns: string[] = []
   on('agent.spawn', (_, e) => (spawns.push(e.prompt), { model: 'sonnet', agentId: 'agent-1' }))
   await $.tool.call({ tool: 'ReportFindings', findings: [FINDING] })
@@ -154,7 +157,6 @@ test('outside Ghostty, a button starts a background agent instead', async ($, on
   const [button] = await ui.findAll({ type: 'Button', text: 'receiving-code-review' })
   await ui.press({ key: String(button?.key) })
 
-  expect(runs.some(argv => argv[0] === 'osascript')).toBe(false)
   expect(spawns[0]).toContain('`superpowers:receiving-code-review`')
   expect(spawns[0]).toContain('Off-by-one drops the last row')
   expect(await ui.find({ type: 'Text', text: /background agent/ })).toBeDefined()

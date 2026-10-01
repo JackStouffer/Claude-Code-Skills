@@ -12,16 +12,6 @@ const reporter = atom({ plugin: 'jacks-skills', key: 'reporter' } as const, 'cod
 const REPORTFINDINGS_SKILLS = new Set(['code-review', 'test-audit'])
 const INSTRUCTED_SKILLS = new Set(['ce-code-review', 'ce-doc-review', 'ponytail-review', 'ponytail-audit'])
 
-const OPEN_GHOSTTY_TAB = `on run argv
-tell application "Ghostty"
-  set cfg to new surface configuration
-  set initial working directory of cfg to item 1 of argv
-  set initial input of cfg to item 2 of argv
-  new tab in front window with configuration cfg
-  activate
-end tell
-end run`
-
 type RawFinding = Omit<Finding, 'id' | 'source' | 'sentTo'>
 
 const bareName = (skill: string) => skill.slice(skill.lastIndexOf(':') + 1)
@@ -66,6 +56,8 @@ const location = (f: Finding) => (f.file ? ` at \`${f.file}${f.line ? `:${f.line
 const findingText = (f: Finding) =>
   [`Review finding from \`${f.source}\`${location(f)}:`, f.summary, f.detail].filter(Boolean).join('\n\n')
 
+const agentLabel = (f: Finding, skill: string) => `${bareName(skill)}: ${f.summary.slice(0, 40)}`
+
 const shellQuote = (text: string) => `'${text.replaceAll("'", `'\\''`)}'`
 
 // claude-work can be a shell function (a wrapper that sets credentials), which only an interactive shell sees.
@@ -85,26 +77,24 @@ async function parentPluginDirs($: EngineInterface) {
   return [...(ps?.stdout ?? '').matchAll(/--plugin-dir(?:=|\s+)(\S+)/g)].flatMap(match => match[1] ?? [])
 }
 
-async function openGhosttyTab($: EngineInterface, f: Finding, skill: string) {
-  if ((await $.env.get('TERM_PROGRAM')) !== 'ghostty') return false
-
+// `claude --bg` starts a session in the background, listed in the agents view (`claude agents`).
+async function startBackgroundSession($: EngineInterface, f: Finding, skill: string) {
   const promptPath = `/tmp/review-board/${f.id}.md`
   await $.fs.write(promptPath, `/${skill} ${findingText(f)}`)
   const flags = (await parentPluginDirs($)).map(dir => ` --plugin-dir ${shellQuote(dir)}`).join('')
-  const launch = `${await claudeCommand($)}${flags} "$(cat ${promptPath})"\n`
-  const ran = await $.process
-    .run(['osascript', '-e', OPEN_GHOSTTY_TAB, await $.session.cwd(), launch])
-    .catch(() => undefined)
+  const shell = (await $.env.get('SHELL')) ?? '/bin/sh'
+  const launch = `${await claudeCommand($)} --bg --name ${shellQuote(agentLabel(f, skill))}${flags} "$(cat ${promptPath})"`
+  const ran = await $.process.run([shell, '-ic', launch], { timeoutMs: 15000 }).catch(() => undefined)
 
   return ran?.exitCode === 0
 }
 
-// Outside Ghostty, a background subagent is the separate context: its own window, listed under tasks.
+// If the background session does not start, a background subagent is the separate context, listed under tasks.
 async function sendFinding($: EngineInterface, f: Finding, skill: string) {
-  let sentTo = skill
-  if (!(await openGhosttyTab($, f, skill))) {
+  let sentTo = `${skill} (agents view)`
+  if (!(await startBackgroundSession($, f, skill))) {
     const spawned = await $.agent.spawn({
-      description: `${bareName(skill)}: ${f.summary.slice(0, 40)}`,
+      description: agentLabel(f, skill),
       prompt: `Use the Skill tool to run the \`${skill}\` skill on this finding, then follow it:\n\n${findingText(f)}`,
     })
     if (spawned.deny !== undefined) {

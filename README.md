@@ -21,10 +21,10 @@ When `/code-review`, `ce-code-review`, `ce-doc-review`, `ponytail-review`, `pony
 The pane does not take the keyboard by itself. Run `/review-board` to give it the keyboard. The other way is ctrl+x, release, then Tab (in Ghostty, ctrl+Tab switches tabs, so let go of ctrl first). Clicks reach the pane only in fullscreen mode. In the pane, Tab moves between buttons, Enter presses the highlighted one, and Esc returns to the prompt. The arrows scroll the pane, and the left arrow opens the agents view. Each finding has three buttons:
 
 - **Ignore**: removes the finding from the board.
-- **receiving-feedback**: opens a new Ghostty tab in the same directory and starts a fresh session that runs `/jacks-skills:receiving-feedback` on the finding.
+- **receiving-feedback**: starts a fresh background session in the same directory that runs `/jacks-skills:receiving-feedback` on the finding. The session is in the agents view (`claude agents`).
 - **receiving-code-review**: does the same with `/superpowers:receiving-code-review`.
 
-The new tab runs `claude-work` if your shell defines it, and `claude` if not. It passes on the current session's `--plugin-dir` flags. Outside Ghostty, the button starts a background subagent instead: it has its own context and is listed under tasks. A rerun of the same review replaces its earlier findings.
+The new session runs `claude-work --bg` if your shell defines `claude-work`, and `claude --bg` if not. It passes on the current session's `--plugin-dir` flags. If the background session does not start, the button starts a background subagent instead: it has its own context and is listed under tasks. A rerun of the same review replaces its earlier findings.
 
 ## Development
 

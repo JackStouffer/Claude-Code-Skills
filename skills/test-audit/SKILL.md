@@ -1,6 +1,6 @@
 ---
 name: test-audit
-description: Use when asked to review test quality, prune or clean up a test suite, find low-value, redundant, or filler tests, or check agent-written tests before merging or opening a PR. Triggers on /jacks-skills:test-audit; pass test files or directories as arguments, or none to audit the current branch.
+description: Use when asked to review test quality, prune or clean up a test suite, find low-value, redundant, or filler tests, or check agent-written tests before merging or opening a PR. Triggers on /jacks-skills:test-audit; pass test files, directories, or scope instructions as arguments, or none to audit the current branch's tests (or the whole suite on main/master).
 ---
 
 # Test audit
@@ -11,16 +11,24 @@ The audit reports first. Test files change only after the user agrees to the ver
 
 ## Scope
 
-- **With arguments:** audit the given test files or directories.
-- **Without arguments:** audit the tests the branch adds or changes, committed or not:
+```bash
+current=$(git branch --show-current)
+default=$(git symbolic-ref -q --short refs/remotes/origin/HEAD || echo main)   # e.g. origin/main
+```
+
+- **With arguments:** follow them. They may name test files or directories, or describe the scope in words.
+- **Without arguments, on the default branch** (`$current` is `main`, `master`, or `${default#origin/}`): audit every test in the repo.
+- **Without arguments, on any other branch:** audit the tests the branch adds or changes, committed or not:
 
   ```bash
-  base=$(git merge-base HEAD "$(git symbolic-ref -q --short refs/remotes/origin/HEAD || echo main)")
+  base=$(git merge-base HEAD "$default")
   git diff --name-only "$base"                 # committed and uncommitted changes
   git ls-files --others --exclude-standard     # untracked files
   ```
 
   Audit the test files from both lists. Label each one untracked if it is in the `ls-files` list, uncommitted if it is in `git diff --name-only HEAD`, and committed otherwise.
+
+Before you judge any test, tell the user which scope you chose and why, and list the in-scope test files. For example: "No arguments and on branch `receipt-summary`, so auditing the tests it changes since `main`: `tests/test_receipt.py` (committed), `tests/test_receipt_edge.py` (untracked)." Or: "No arguments and on `main`, so auditing the whole suite (14 test files)."
 
 Give verdicts only to in-scope tests. Read the rest of the suite too, because the test that owns a contract is often in another file.
 

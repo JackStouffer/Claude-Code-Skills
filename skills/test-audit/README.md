@@ -13,10 +13,12 @@ look better than it is.
 
 ## How the skill works
 
-1. **Scope.** With arguments, it audits the given files. Without arguments, it
-   audits the tests the current branch adds or changes, including uncommitted
-   and untracked files. It still reads the rest of the suite to find the tests
-   that own each contract.
+1. **Scope.** With arguments, it follows them (files, directories, or
+   instructions in words). Without arguments on `main`/`master`, it audits the
+   whole suite. Without arguments on any other branch, it audits the tests the
+   branch adds or changes, including uncommitted and untracked files. It tells
+   you which scope it chose before it starts. It still reads the rest of the
+   suite to find the tests that own each contract.
 2. **Judge each test** by its contract, a plausible bug that makes it fail, the
    test that owns that bug, whether the assertion is honest, and its git
    history (a regression test is not deleted unless something else reproduces

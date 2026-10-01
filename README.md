@@ -11,6 +11,7 @@ Once installed, each skill is invoked under the plugin namespace, e.g. `/jacks-s
 - `jacks-skills:executing-plans`: Execute an already-reviewed implementation plan with todo tracking and per-task verification.
 - `jacks-skills:feature-planner`: Write a plan file by breaking down a feature request and then asking a series of questions about the implementation.
 - `jacks-skills:plan-splitter`: Break a large implementation plan into smaller, independently executable sub-plans, each leaving the app in a working, verifiable state.
+- `jacks-skills:test-audit`: Find low-value tests (tests no plausible bug would fail), report a verdict per test, and delete, rewrite, or merge them once approved.
 - `jacks-skills:fix-merge-conflicts`: Resolve the merge conflicts in the current working tree by combining the intent of both branches — code edits only, no git commands.
 
 ## Install

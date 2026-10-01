@@ -56,6 +56,45 @@ test('instructs the review skills to report, and leaves other skills alone', asy
   expect(other.text).toBe('Brainstorm.')
 })
 
+test('ReportFindings after test-audit lands under test-audit, without a second report instruction', async ($, on) => {
+  host(on, {}, false)
+  on('skill.prompt', (_, e) => ({ text: e.text }))
+
+  const audit = await $.skill.prompt({ skill: 'jacks-skills:test-audit', text: 'Audit.' })
+  expect(audit.text).toBe('Audit.')
+  await $.tool.call({ tool: 'ReportFindings', findings: [{ ...FINDING, category: 'delete' }] })
+
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ type: 'Text', text: /^\[delete\] Off-by-one/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^test-audit · src\/app\.py:12/ })).toBeDefined()
+  await ui.unmount()
+})
+
+test('the status line points back to the board, which /review-board opens with the keyboard', async ($, on) => {
+  host(on, {}, false)
+  const statuses: (string | undefined)[] = []
+  const opens: boolean[] = []
+  on('ui.status', (_, e) => (statuses.push(e.text), { value: undefined }))
+  on('ui.open', (_, e) => (opens.push(Boolean(e.focus)), { value: { isPlaced: true } }))
+  await $.tool.call({ tool: 'ReportFindings', findings: [FINDING] })
+  expect(statuses.at(-1)).toBe('1 review findings · /review-board')
+
+  await $.command.run({
+    command: 'review-board',
+    args: '',
+    origin: { kind: 'composer' },
+    presentation: { isFullscreen: true, columns: 200 },
+  })
+  expect(opens.at(-1)).toBe(true)
+
+  const ui = await $.ui.mount({ ...PANE, props: { ...PANE.props, isFocused: false }, surface: 'terminal' })
+  expect(await ui.find({ type: 'Text', text: /^ctrl\+x tab/ })).toBeDefined()
+  const [ignore] = await ui.findAll({ type: 'Button', text: 'Ignore' })
+  await ui.press({ key: String(ignore?.key) })
+  expect(statuses.at(-1)).toBeUndefined()
+  await ui.unmount()
+})
+
 test('in Ghostty, a button opens a tab running claude-work with the parent plugin dirs', async ($, on) => {
   const { writes, runs } = host(on, { TERM_PROGRAM: 'ghostty', SHELL: '/bin/zsh' }, true)
   await $.tool.call({ tool: 'ReportFindings', findings: [FINDING, { ...FINDING, summary: 'Second' }] })

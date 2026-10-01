@@ -88,6 +88,16 @@ Instead: assert the literal "Total: $29.99".
 
 Required lines: `Verdict` and `Why`, plus `Bug` (or "none plausible"). Add `Owner` on duplicates, with the mutation that failed both if you ran one. Add `History` when a commit decided the call, and `Instead` on REWRITE and MERGE.
 
+If the `ReportFindings` tool is available, call it once with every DELETE, REWRITE, MERGE, and UNSURE test, in report order, and do not print their blocks as text. Map each test to a finding like this:
+
+- `file` and `line`: the test's location.
+- `summary`: the test name, the verdict, and the pattern, e.g. "`test_total_line_format`: REWRITE (tautology)".
+- `failure_scenario`: the block's other lines (`Why`, `Bug`, `Owner`, `History`, `Instead`) with the file label, verbatim.
+- `category`: the verdict in lowercase (`delete`, `rewrite`, `merge`, `unsure`).
+- Leave out `verdict` and `outcome`.
+
+KEEP blocks stay as text. If `ReportFindings` is not available, print every block as text.
+
 Then:
 
 1. **Counts** per verdict.

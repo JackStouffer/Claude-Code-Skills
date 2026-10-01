@@ -11,6 +11,6 @@ export interface Finding {
 
 declare module 'claude-code' {
   interface PluginState {
-    'jacks-skills': { findings: Finding[] }
+    'jacks-skills': { findings: Finding[]; reporter: string }
   }
 }

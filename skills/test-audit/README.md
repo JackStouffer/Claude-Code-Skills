@@ -29,7 +29,9 @@ look better than it is.
    be lost.
 4. **Report** one block per test, grouped DELETE → REWRITE → MERGE → UNSURE →
    KEEP, then counts, coverage gaps, and the recurring patterns as rules to put
-   where tests get written (e.g. CLAUDE.md).
+   where tests get written (e.g. CLAUDE.md). When the built-in `ReportFindings`
+   tool exists, the non-KEEP verdicts go through it instead (and onto the
+   review board, if the mod is loaded).
 5. **Apply** only after you approve: test files only, then a full suite run.
 
 ## Core principle

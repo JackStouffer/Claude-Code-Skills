@@ -6,15 +6,11 @@ import type { Finding } from '../types'
 const PANE = 'review-board'
 const REPORT_TOOL = 'mcp__jacks-skills__report_review_findings'
 const findings = atom({ plugin: 'jacks-skills', key: 'findings' } as const, [])
+// The last skill to start that reports through the built-in ReportFindings tool.
+const reporter = atom({ plugin: 'jacks-skills', key: 'reporter' } as const, 'code-review')
 
-// code-review is absent: it already reports through the built-in ReportFindings tool.
-const INSTRUCTED_SKILLS = new Set([
-  'ce-code-review',
-  'ce-doc-review',
-  'ponytail-review',
-  'ponytail-audit',
-  'test-audit',
-])
+const REPORTFINDINGS_SKILLS = new Set(['code-review', 'test-audit'])
+const INSTRUCTED_SKILLS = new Set(['ce-code-review', 'ce-doc-review', 'ponytail-review', 'ponytail-audit'])
 
 const OPEN_GHOSTTY_TAB = `on run argv
 tell application "Ghostty"
@@ -38,6 +34,13 @@ When your findings are final, call the \`${REPORT_TOOL}\` tool once with \`sourc
 const isRawFinding = (value: unknown): value is RawFinding =>
   typeof value === 'object' && value !== null && typeof (value as { summary?: unknown }).summary === 'string'
 
+// The status line is the way back to a pane that was closed or tabbed away.
+async function setFindings($: EngineInterface, fn: (list: Finding[]) => Finding[]) {
+  await update($, findings, fn)
+  const count = (await read($, findings)).length
+  $.ui.status(count ? `${count} review findings · /review-board` : undefined)
+}
+
 async function addBatch($: EngineInterface, source: string, raw: readonly RawFinding[]) {
   const stamp = Date.now().toString(36)
   const batch: Finding[] = raw.map((one, i) => ({
@@ -50,7 +53,7 @@ async function addBatch($: EngineInterface, source: string, raw: readonly RawFin
     detail: one.detail,
   }))
   // A rerun of the same review supersedes its earlier findings.
-  await update($, findings, list => [...list.filter(one => one.source !== source), ...batch].slice(-100))
+  await setFindings($, list => [...list.filter(one => one.source !== source), ...batch].slice(-100))
 
   const opened = await $.ui.open({ id: PANE, title: 'Review findings' })
   if (!opened.isPlaced) $.ui.toast(`${batch.length} findings from ${source}: run /review-board`)
@@ -146,15 +149,17 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: 'review-board' }, async $ => {
-    await $.ui.open({ id: PANE, title: 'Review findings' })
+    await $.ui.open({ id: PANE, title: 'Review findings', focus: true })
 
-    return { text: 'Review board opened.' }
+    return { text: 'Review board opened. Tab or arrows pick a button, Enter presses it, Esc returns to the prompt.' }
   })
 
-  on('skill.prompt', async (_, e, next) => {
+  on('skill.prompt', async ($, e, next) => {
     const out = await next(e)
+    const skill = bareName(e.skill)
+    if (REPORTFINDINGS_SKILLS.has(skill)) await update($, reporter, () => skill)
 
-    return INSTRUCTED_SKILLS.has(bareName(e.skill)) ? { text: out.text + reportInstruction(bareName(e.skill)) } : out
+    return INSTRUCTED_SKILLS.has(skill) ? { text: out.text + reportInstruction(skill) } : out
   })
 
   on('tool.call', { tool: REPORT_TOOL }, async ($, e) => {
@@ -173,11 +178,11 @@ export const register: Register = on => {
     if (ran.deny === undefined && !e.findings.some(one => one.outcome)) {
       await addBatch(
         $,
-        'code-review',
+        await read($, reporter),
         e.findings.map(one => ({
           file: one.file,
           line: one.line,
-          severity: one.verdict,
+          severity: one.verdict ?? one.category,
           summary: one.summary,
           detail: one.failure_scenario,
         })),
@@ -194,6 +199,7 @@ export const register: Register = on => {
 
     return (
       <Box flexDirection="column" gap={1}>
+        {!e.props.isFocused && <Text dimColor>ctrl+x tab to use the buttons · Esc returns to the prompt</Text>}
         {list.map(f => (
           <Box key={f.id} flexDirection="column">
             <Text bold={!f.sentTo} dimColor={Boolean(f.sentTo)}>
@@ -210,7 +216,7 @@ export const register: Register = on => {
               <Box flexDirection="row" gap={1}>
                 <Button
                   key={`ignore:${f.id}`}
-                  onPress={() => void update($, findings, all => all.filter(one => one.id !== f.id))}
+                  onPress={() => void setFindings($, all => all.filter(one => one.id !== f.id))}
                 >
                   Ignore
                 </Button>

@@ -199,7 +199,9 @@ export const register: Register = on => {
 
     return (
       <Box flexDirection="column" gap={1}>
-        {!e.props.isFocused && <Text dimColor>ctrl+x tab to use the buttons · Esc returns to the prompt</Text>}
+        {!e.props.isFocused && (
+          <Text dimColor>Run /review-board to use the buttons, or press ctrl+x, release, then Tab</Text>
+        )}
         {list.map(f => (
           <Box key={f.id} flexDirection="column">
             <Text bold={!f.sentTo} dimColor={Boolean(f.sentTo)}>

@@ -16,9 +16,9 @@ Once installed, each skill is invoked under the plugin namespace, e.g. `/jacks-s
 
 ## Review board (mod)
 
-When `/code-review`, `ce-code-review`, `ce-doc-review`, `ponytail-review`, `ponytail-audit` or `test-audit` finishes, its findings appear in a "Review findings" pane. `/review-board` opens the pane by hand, or brings it back after it was closed or hidden. While findings exist, the status line shows their count.
+When `/code-review`, `ce-code-review`, `ce-doc-review`, `ponytail-review`, `ponytail-audit` or `test-audit` finishes, its findings appear in a "Review findings" pane. `/review-board` opens the pane by hand, or brings it back after it was closed or hidden. While findings exist, the status line shows their count. Findings last for the session only.
 
-The pane does not take the keyboard by itself. Press ctrl+x tab (or click the pane) to give it the keyboard. `/review-board` gives it the keyboard at once. Tab or the arrows pick a button, Enter presses it, and Esc returns to the prompt. Each finding has three buttons:
+The pane does not take the keyboard by itself. Run `/review-board` to give it the keyboard. The other way is ctrl+x, release, then Tab (in Ghostty, ctrl+Tab switches tabs, so let go of ctrl first). Clicks reach the pane only in fullscreen mode. Tab or the arrows pick a button, Enter presses it, and Esc returns to the prompt. Each finding has three buttons:
 
 - **Ignore**: removes the finding from the board.
 - **receiving-feedback**: opens a new Ghostty tab in the same directory and starts a fresh session that runs `/jacks-skills:receiving-feedback` on the finding.

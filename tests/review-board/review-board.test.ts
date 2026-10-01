@@ -88,7 +88,7 @@ test('the status line points back to the board, which /review-board opens with t
   expect(opens.at(-1)).toBe(true)
 
   const ui = await $.ui.mount({ ...PANE, props: { ...PANE.props, isFocused: false }, surface: 'terminal' })
-  expect(await ui.find({ type: 'Text', text: /^ctrl\+x tab/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^Run \/review-board to use the buttons/ })).toBeDefined()
   const [ignore] = await ui.findAll({ type: 'Button', text: 'Ignore' })
   await ui.press({ key: String(ignore?.key) })
   expect(statuses.at(-1)).toBeUndefined()

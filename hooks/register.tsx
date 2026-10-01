@@ -151,7 +151,7 @@ export const register: Register = on => {
   on('command.run', { command: 'review-board' }, async $ => {
     await $.ui.open({ id: PANE, title: 'Review findings', focus: true })
 
-    return { text: 'Review board opened. Tab or arrows pick a button, Enter presses it, Esc returns to the prompt.' }
+    return { text: 'Review board opened. Tab moves between buttons, Enter presses one, Esc returns to the prompt.' }
   })
 
   on('skill.prompt', async ($, e, next) => {
@@ -196,12 +196,16 @@ export const register: Register = on => {
     const { Box, Text, Button } = $.ui.resolve(e)
     const list = await read($, findings)
     if (list.length === 0) return <Text dimColor>No review findings yet.</Text>
+    // The focus ring starts on nothing; give it a button so Enter acts at once.
+    const firstOpen = list.find(f => !f.sentTo)
 
     return (
       <Box flexDirection="column" gap={1}>
-        {!e.props.isFocused && (
-          <Text dimColor>Run /review-board to use the buttons, or press ctrl+x, release, then Tab</Text>
-        )}
+        <Text dimColor>
+          {e.props.isFocused
+            ? 'Tab moves between buttons · Enter presses · Esc returns to the prompt'
+            : 'Run /review-board to use the buttons, or press ctrl+x, release, then Tab'}
+        </Text>
         {list.map(f => (
           <Box key={f.id} flexDirection="column">
             <Text bold={!f.sentTo} dimColor={Boolean(f.sentTo)}>
@@ -224,6 +228,7 @@ export const register: Register = on => {
                 </Button>
                 <Button
                   key={`feedback:${f.id}`}
+                  {...(f === firstOpen && { autoFocus: true })}
                   onPress={() => void sendFinding($, f, 'jacks-skills:receiving-feedback')}
                 >
                   receiving-feedback

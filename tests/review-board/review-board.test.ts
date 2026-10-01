@@ -87,6 +87,12 @@ test('the status line points back to the board, which /review-board opens with t
   })
   expect(opens.at(-1)).toBe(true)
 
+  const focused = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await focused.find({ type: 'Text', text: /^Tab moves between buttons/ })).toBeDefined()
+  const [first] = await focused.findAll({ type: 'Button', text: 'receiving-feedback' })
+  expect(first?.props['autoFocus']).toBe(true)
+  await focused.unmount()
+
   const ui = await $.ui.mount({ ...PANE, props: { ...PANE.props, isFocused: false }, surface: 'terminal' })
   expect(await ui.find({ type: 'Text', text: /^Run \/review-board to use the buttons/ })).toBeDefined()
   const [ignore] = await ui.findAll({ type: 'Button', text: 'Ignore' })

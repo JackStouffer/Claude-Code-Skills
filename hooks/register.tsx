@@ -286,7 +286,7 @@ export const register: Register = on => {
             {f.sentTo ? (
               <Text dimColor>sent to {f.sentTo}</Text>
             ) : (
-              <Box flexDirection="row" gap={1}>
+              <Box flexDirection="column">
                 <Button
                   key={`ignore:${f.id}`}
                   onPress={() => void setFindings($, all => all.filter(one => one.id !== f.id))}

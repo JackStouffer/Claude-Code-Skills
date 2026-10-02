@@ -12,6 +12,29 @@ const reporter = atom({ plugin: 'jacks-skills', key: 'reporter' } as const, 'cod
 const REPORTFINDINGS_SKILLS = new Set(['code-review', 'test-audit'])
 const INSTRUCTED_SKILLS = new Set(['ce-code-review', 'ce-doc-review', 'ponytail-review', 'ponytail-audit'])
 
+const FEEDBACK = 'jacks-skills:receiving-feedback'
+const CODE_REVIEW = 'superpowers:receiving-code-review'
+const SEND_BUTTONS = [
+  { skill: FEEDBACK, isTab: false, label: 'receiving-feedback' },
+  { skill: CODE_REVIEW, isTab: false, label: 'receiving-code-review' },
+]
+const GHOSTTY_BUTTONS = [
+  { skill: CODE_REVIEW, isTab: true, label: 'Run receiving-code-review in Ghostty tab' },
+  { skill: FEEDBACK, isTab: true, label: 'Run receiving-feedback in Ghostty tab' },
+  { skill: CODE_REVIEW, isTab: false, label: 'Run receiving-code-review in bg agent' },
+  { skill: FEEDBACK, isTab: false, label: 'Run receiving-feedback in bg agent' },
+]
+
+const OPEN_GHOSTTY_TAB = `on run argv
+tell application "Ghostty"
+  set cfg to new surface configuration
+  set initial working directory of cfg to item 1 of argv
+  set initial input of cfg to item 2 of argv
+  new tab in front window with configuration cfg
+  activate
+end tell
+end run`
+
 type RawFinding = Omit<Finding, 'id' | 'source' | 'sentTo'>
 
 const bareName = (skill: string) => skill.slice(skill.lastIndexOf(':') + 1)
@@ -77,6 +100,20 @@ async function parentPluginDirs($: EngineInterface) {
   return [...(ps?.stdout ?? '').matchAll(/--plugin-dir(?:=|\s+)(\S+)/g)].flatMap(match => match[1] ?? [])
 }
 
+// The tab's initial input is typed into its shell, so the multi-line prompt goes through a file.
+async function openGhosttyTab($: EngineInterface, f: Finding, skill: string) {
+  const promptPath = `/tmp/review-board/${f.id}.md`
+  await $.fs.write(promptPath, `/${skill} ${findingText(f)}`)
+  const flags = (await parentPluginDirs($)).map(dir => ` --plugin-dir ${shellQuote(dir)}`).join('')
+  const launch = `${await claudeCommand($)}${flags} "$(cat ${promptPath})"\n`
+  const ran = await $.process
+    .run(['osascript', '-e', OPEN_GHOSTTY_TAB, await $.session.cwd(), launch])
+    .catch(() => undefined)
+  if (ran?.exitCode !== 0) $.ui.toast('Could not open a Ghostty tab', { timeoutMs: 8000 })
+
+  return ran?.exitCode === 0
+}
+
 // `claude --bg` starts a session in the background, listed in the agents view (`claude agents`).
 async function startBackgroundSession($: EngineInterface, f: Finding, skill: string) {
   const flags = (await parentPluginDirs($)).map(dir => ` --plugin-dir ${shellQuote(dir)}`).join('')
@@ -109,9 +146,18 @@ async function spawnAgent($: EngineInterface, f: Finding, skill: string) {
   return spawned.deny === undefined
 }
 
-async function sendFinding($: EngineInterface, f: Finding, skill: string, surface: UiPressArgument['surface']) {
+async function sendFinding(
+  $: EngineInterface,
+  f: Finding,
+  skill: string,
+  isTab: boolean,
+  surface: UiPressArgument['surface'],
+) {
   let sentTo: string
-  if (surface === 'desktop') {
+  if (isTab) {
+    if (!(await openGhosttyTab($, f, skill))) return
+    sentTo = `${skill} (Ghostty tab)`
+  } else if (surface === 'desktop') {
     if (!(await draftAgentRequest($, f, skill))) return
     sentTo = `${skill} (prompt box, press Enter)`
   } else if (await startBackgroundSession($, f, skill)) {
@@ -210,6 +256,8 @@ export const register: Register = on => {
     if (list.length === 0) return <Text dimColor>No review findings yet.</Text>
     // The focus ring starts on nothing; give it a button so Enter acts at once.
     const firstOpen = list.find(f => !f.sentTo)
+    const isGhostty = e.surface === 'terminal' && (await $.env.get('TERM_PROGRAM')) === 'ghostty'
+    const buttons = isGhostty ? GHOSTTY_BUTTONS : SEND_BUTTONS
 
     return (
       <Box flexDirection="column" gap={1}>
@@ -238,23 +286,17 @@ export const register: Register = on => {
                 >
                   Ignore
                 </Button>
-                <Button
-                  key={`feedback:${f.id}`}
-                  {...(f === firstOpen && { autoFocus: true })}
-                  onPress={press =>
-                    void sendFinding($, f, 'jacks-skills:receiving-feedback', press.surface).catch(sendFailed($))
-                  }
-                >
-                  receiving-feedback
-                </Button>
-                <Button
-                  key={`code-review:${f.id}`}
-                  onPress={press =>
-                    void sendFinding($, f, 'superpowers:receiving-code-review', press.surface).catch(sendFailed($))
-                  }
-                >
-                  receiving-code-review
-                </Button>
+                {buttons.map((button, i) => (
+                  <Button
+                    key={`${button.isTab ? 'tab' : 'send'}:${bareName(button.skill)}:${f.id}`}
+                    {...(f === firstOpen && i === 0 && { autoFocus: true })}
+                    onPress={press =>
+                      void sendFinding($, f, button.skill, button.isTab, press.surface).catch(sendFailed($))
+                    }
+                  >
+                    {button.label}
+                  </Button>
+                ))}
               </Box>
             )}
           </Box>

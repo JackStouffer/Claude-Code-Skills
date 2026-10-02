@@ -29,9 +29,11 @@ const ran = (exitCode: number, stdout = ''): { value: ProcessRunResult } => ({
 // The host beneath the plugin: a session in /repo started as `claude --plugin-dir '/plug/a b'`.
 function host(on: On, variables: Record<string, string>, hasClaudeWork: boolean, canBackground = true) {
   mock.env(on, variables)
+  const writes: Record<string, string> = {}
   const runs: string[][] = []
   on('tool.call', { tool: 'ReportFindings' }, () => ({ result: {} }))
   on('session.cwd', () => ({ value: '/repo' }))
+  on('fs.write', (_, e) => ((writes[e.path] = e.text), { value: undefined }))
   on('process.run', (_, e) => {
     runs.push([...e.argv])
     if (e.argv[0] === 'sh') return ran(0, 'claude --plugin-dir=/plug/a --model opus\n')
@@ -41,7 +43,7 @@ function host(on: On, variables: Record<string, string>, hasClaudeWork: boolean,
     return ran(0)
   })
 
-  return { runs }
+  return { writes, runs }
 }
 
 test('instructs the review skills to report, and leaves other skills alone', async ($, on) => {
@@ -128,6 +130,35 @@ test('a button starts a background session running claude-work with the parent p
 
   await ui.press({ key: String(ignore[1]?.key) })
   expect(await ui.find({ type: 'Text', text: /Second/ })).toBeUndefined()
+  await ui.unmount()
+})
+
+test('in Ghostty, the board also offers a tab per skill, which runs claude-work there', async ($, on) => {
+  const { writes, runs } = host(on, { TERM_PROGRAM: 'ghostty', SHELL: '/bin/zsh' }, true)
+  await $.tool.call({ tool: 'ReportFindings', findings: [FINDING] })
+
+  const desktop = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  expect(await desktop.find({ type: 'Button', text: /Ghostty tab/ })).toBeUndefined()
+  await desktop.unmount()
+
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  const labels = (await ui.findAll({ type: 'Button' })).map(button => button.text)
+  expect(labels).toEqual([
+    'Ignore',
+    'Run receiving-code-review in Ghostty tab',
+    'Run receiving-feedback in Ghostty tab',
+    'Run receiving-code-review in bg agent',
+    'Run receiving-feedback in bg agent',
+  ])
+  const [tab] = await ui.findAll({ type: 'Button', text: 'Run receiving-feedback in Ghostty tab' })
+  await ui.press({ key: String(tab?.key) })
+
+  const [promptPath, prompt] = Object.entries(writes)[0] ?? []
+  expect(prompt?.startsWith('/jacks-skills:receiving-feedback Review finding from `code-review`')).toBe(true)
+  const osascript = runs.find(argv => argv[0] === 'osascript')
+  expect(osascript?.[3]).toBe('/repo')
+  expect(osascript?.[4]).toBe(`claude-work --plugin-dir '/plug/a' "$(cat ${String(promptPath)})"\n`)
+  expect(await ui.find({ type: 'Text', text: 'sent to jacks-skills:receiving-feedback (Ghostty tab)' })).toBeDefined()
   await ui.unmount()
 })
 

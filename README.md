@@ -24,7 +24,9 @@ The pane does not take the keyboard by itself. Run `/review-board` to give it th
 - **receiving-feedback**: starts a fresh background session in the same directory that runs `/jacks-skills:receiving-feedback` on the finding. The session is in the agents view (`claude agents`).
 - **receiving-code-review**: does the same with `/superpowers:receiving-code-review`.
 
-The new session runs `claude-work --bg` if your shell defines `claude-work`, and `claude --bg` if not. It passes on the current session's `--plugin-dir` flags. If the background session does not start, the button starts a background subagent instead: it has its own context and is listed under tasks. A rerun of the same review replaces its earlier findings.
+The new session runs `claude-work --bg` if your shell defines `claude-work`, and `claude --bg` if not. It passes on the current session's `--plugin-dir` flags. If the background session does not start, the button starts a background subagent instead: it has its own context and is listed under tasks.
+
+In Ghostty in the terminal, each finding has five buttons: Ignore, then **Run receiving-code-review in Ghostty tab** and **Run receiving-feedback in Ghostty tab**, which open a new Ghostty tab in the same directory that runs the skill on the finding, then **Run receiving-code-review in bg agent** and **Run receiving-feedback in bg agent**, which start a background session as described above. A rerun of the same review replaces its earlier findings.
 
 ## Development
 

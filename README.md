@@ -30,7 +30,7 @@ In Ghostty in the terminal, each finding has five buttons: Ignore, then **Run re
 
 ## Plan progress (mod)
 
-When `jacks-skills:executing-plans` starts a plan, a "Plan progress" pane opens. The skill sends the plan's steps and their statuses through the plugin's `update_plan_progress` tool. The pane shows a checkmark for done, a spinner for in progress, and an empty box for to do. A progress bar is at the bottom. `/plan-progress` opens the pane again after it was closed.
+When `jacks-skills:executing-plans` starts a plan, a "Plan progress" pane opens. The skill sends the plan's steps and their statuses through the plugin's `update_plan_progress` tool. The pane shows a checkmark for done, a spinner for in progress, and an empty box for to do. A progress bar is at the bottom. In the fullscreen terminal and the desktop app, an animated Clawd above the steps types at a laptop while a step is in progress and cheers when the plan is done. `/plan-progress` opens the pane again after it was closed.
 
 ## Development
 

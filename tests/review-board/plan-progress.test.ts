@@ -73,3 +73,22 @@ test('the plan tool refuses a step with an unknown status', async $ => {
   const ran = await $.tool.call({ tool: PLAN_TOOL, steps: [{ subject: 'One', status: 'done' }] })
   expect(ran.deny).toContain('status one of pending, in_progress, completed')
 })
+
+test('Clawd shows in the fullscreen terminal and on desktop, not on the main screen', async ($, on) => {
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  await $.tool.call({ tool: PLAN_TOOL, steps: [{ subject: 'One', status: 'in_progress' }] })
+  const props = { ...PANE.props, bodyColumns: 40 }
+  const viewport = (isFullscreen: boolean) => ({ columns: 160, rows: 50, isFullscreen })
+
+  const main = await $.ui.mount({ ...PANE, props, viewport: viewport(false) })
+  expect(await main.find({ type: 'Raster' })).toBeUndefined()
+  await main.unmount()
+
+  const fullscreen = await $.ui.mount({ ...PANE, props, viewport: viewport(true) })
+  expect(await fullscreen.find({ type: 'Raster', key: 'clawd' })).toBeDefined()
+  await fullscreen.unmount()
+
+  const desktop = await $.ui.mount({ ...PANE, surface: 'desktop', props })
+  expect(await desktop.find({ type: 'Svg' })).toBeDefined()
+  await desktop.unmount()
+})

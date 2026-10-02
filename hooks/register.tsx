@@ -79,11 +79,9 @@ async function parentPluginDirs($: EngineInterface) {
 
 // `claude --bg` starts a session in the background, listed in the agents view (`claude agents`).
 async function startBackgroundSession($: EngineInterface, f: Finding, skill: string) {
-  const promptPath = `/tmp/review-board/${f.id}.md`
-  await $.fs.write(promptPath, `/${skill} ${findingText(f)}`)
   const flags = (await parentPluginDirs($)).map(dir => ` --plugin-dir ${shellQuote(dir)}`).join('')
   const shell = (await $.env.get('SHELL')) ?? '/bin/sh'
-  const launch = `${await claudeCommand($)} --bg --name ${shellQuote(agentLabel(f, skill))}${flags} "$(cat ${promptPath})"`
+  const launch = `${await claudeCommand($)} --bg --name ${shellQuote(agentLabel(f, skill))}${flags} ${shellQuote(`/${skill} ${findingText(f)}`)}`
   const ran = await $.process.run([shell, '-ic', launch], { timeoutMs: 15000 }).catch(() => undefined)
 
   return ran?.exitCode === 0
@@ -104,6 +102,11 @@ async function sendFinding($: EngineInterface, f: Finding, skill: string) {
     sentTo = `${skill} (background agent)`
   }
   await update($, findings, list => list.map(one => (one.id === f.id ? { ...one, sentTo } : one)))
+}
+
+// A button's press has no caller to report to, so a failed send says why in a toast.
+const sendFailed = ($: EngineInterface) => (err: unknown) => {
+  $.ui.toast(`Send failed: ${err instanceof Error ? err.message : String(err)}`, { timeoutMs: 10000 })
 }
 
 export const register: Register = on => {
@@ -219,13 +222,13 @@ export const register: Register = on => {
                 <Button
                   key={`feedback:${f.id}`}
                   {...(f === firstOpen && { autoFocus: true })}
-                  onPress={() => void sendFinding($, f, 'jacks-skills:receiving-feedback')}
+                  onPress={() => void sendFinding($, f, 'jacks-skills:receiving-feedback').catch(sendFailed($))}
                 >
                   receiving-feedback
                 </Button>
                 <Button
                   key={`code-review:${f.id}`}
-                  onPress={() => void sendFinding($, f, 'superpowers:receiving-code-review')}
+                  onPress={() => void sendFinding($, f, 'superpowers:receiving-code-review').catch(sendFailed($))}
                 >
                   receiving-code-review
                 </Button>

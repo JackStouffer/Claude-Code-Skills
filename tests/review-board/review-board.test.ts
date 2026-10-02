@@ -29,11 +29,9 @@ const ran = (exitCode: number, stdout = ''): { value: ProcessRunResult } => ({
 // The host beneath the plugin: a session in /repo started as `claude --plugin-dir '/plug/a b'`.
 function host(on: On, variables: Record<string, string>, hasClaudeWork: boolean, canBackground = true) {
   mock.env(on, variables)
-  const writes: Record<string, string> = {}
   const runs: string[][] = []
   on('tool.call', { tool: 'ReportFindings' }, () => ({ result: {} }))
   on('session.cwd', () => ({ value: '/repo' }))
-  on('fs.write', (_, e) => ((writes[e.path] = e.text), { value: undefined }))
   on('process.run', (_, e) => {
     runs.push([...e.argv])
     if (e.argv[0] === 'sh') return ran(0, 'claude --plugin-dir=/plug/a --model opus\n')
@@ -43,7 +41,7 @@ function host(on: On, variables: Record<string, string>, hasClaudeWork: boolean,
     return ran(0)
   })
 
-  return { writes, runs }
+  return { runs }
 }
 
 test('instructs the review skills to report, and leaves other skills alone', async ($, on) => {
@@ -103,7 +101,7 @@ test('the status line points back to the board, which /review-board opens with t
 })
 
 test('a button starts a background session running claude-work with the parent plugin dirs', async ($, on) => {
-  const { writes, runs } = host(on, { SHELL: '/bin/zsh' }, true)
+  const { runs } = host(on, { SHELL: '/bin/zsh' }, true)
   await $.tool.call({ tool: 'ReportFindings', findings: [FINDING, { ...FINDING, summary: 'Second' }] })
 
   for (const surface of ['terminal', 'desktop'] as const) {
@@ -117,16 +115,15 @@ test('a button starts a background session running claude-work with the parent p
   const feedback = await ui.findAll({ type: 'Button', text: 'receiving-feedback' })
   await ui.press({ key: String(feedback[0]?.key) })
 
-  const [promptPath, prompt] = Object.entries(writes)[0] ?? []
+  const [shell, flag, launch] = runs.at(-1) ?? []
+  expect([shell, flag]).toEqual(['/bin/zsh', '-ic'])
   expect(
-    prompt?.startsWith('/jacks-skills:receiving-feedback Review finding from `code-review` at `src/app.py:12`'),
+    launch?.startsWith(
+      "claude-work --bg --name 'receiving-feedback: Off-by-one drops the last row' --plugin-dir '/plug/a' " +
+        "'/jacks-skills:receiving-feedback Review finding from `code-review` at `src/app.py:12`",
+    ),
   ).toBe(true)
-  expect(prompt).toContain('A 3-row page returns 2 rows')
-  expect(runs.at(-1)).toEqual([
-    '/bin/zsh',
-    '-ic',
-    `claude-work --bg --name 'receiving-feedback: Off-by-one drops the last row' --plugin-dir '/plug/a' "$(cat ${String(promptPath)})"`,
-  ])
+  expect(launch).toContain('A 3-row page returns 2 rows')
   expect(await ui.find({ type: 'Text', text: 'sent to jacks-skills:receiving-feedback (agents view)' })).toBeDefined()
 
   await ui.press({ key: String(ignore[1]?.key) })
@@ -160,5 +157,20 @@ test('when the background session fails to start, a button starts a background a
   expect(spawns[0]).toContain('`superpowers:receiving-code-review`')
   expect(spawns[0]).toContain('Off-by-one drops the last row')
   expect(await ui.find({ type: 'Text', text: /background agent/ })).toBeDefined()
+  await ui.unmount()
+})
+
+test('a send that throws says why in a toast', async ($, on) => {
+  host(on, {}, true, false)
+  const toasts: string[] = []
+  on('ui.toast', (_, e) => (toasts.push(e.text), { value: undefined }))
+  // Nothing answers agent.spawn, so the fallback rejects.
+  await $.tool.call({ tool: 'ReportFindings', findings: [FINDING] })
+
+  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  const [button] = await ui.findAll({ type: 'Button', text: 'receiving-code-review' })
+  await ui.press({ key: String(button?.key) })
+
+  expect(toasts.at(-1)?.startsWith('Send failed: ')).toBe(true)
   await ui.unmount()
 })

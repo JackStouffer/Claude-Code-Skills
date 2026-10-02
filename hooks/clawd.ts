@@ -3,7 +3,7 @@ export const CLAWD_COLUMNS = 36
 export const CLAWD_ROWS = 6
 // The cop: a wide four-legged Clawd in a peaked cap and sunglasses.
 export const COP_COLUMNS = 36
-export const COP_ROWS = 8
+export const COP_ROWS = 10
 
 const NONE = -1
 const DEFAULT = 0x01000000
@@ -64,30 +64,33 @@ const copPixels = (tick: number) => {
   const { px, rect, clear } = draw(w, COP_ROWS * 2)
   const HAT = 0x1a2a4a
   const BRIM = 0x0f1a30
+  const BADGE = 0xf0eee6
   const SHADE = 0x141413
   const GLINT = 0xf0eee6
-  // Wide body blob, rounded corners.
-  rect(5, 4, 26, 8, BODY)
-  clear([5, 4], [30, 4], [5, 11], [30, 11])
-  // Four legs with a two-frame shuffle: diagonal pairs step in turn.
-  const flip = Math.floor(tick / 5) % 2 === 0
-  const a = flip ? 1 : 0
-  const b = flip ? 0 : 1
-  rect(8, 11, 3, 3 + a, BODY)
-  rect(14, 11, 3, 3 + b, BODY)
-  rect(21, 11, 3, 3 + a, BODY)
-  rect(27, 11, 3, 3 + b, BODY)
-  // Peaked cap, centered: domed crown, band, and overhanging brim.
-  rect(13, 0, 10, 3, HAT)
-  clear([13, 0], [22, 0])
-  rect(13, 3, 10, 1, BRIM)
-  rect(11, 4, 14, 1, BRIM)
-  // Sunglasses under the cap: two lenses and a bridge, a glint on each.
+  // Tall square body, Space-Invader silhouette: no rounded corners.
+  rect(9, 4, 18, 11, BODY)
+  // Two arms poking straight out the sides, mid-body.
+  rect(5, 8, 4, 3, BODY)
+  rect(27, 8, 4, 3, BODY)
+  // Sunglasses: two lenses, a bridge, and a glint on each.
   rect(12, 6, 5, 3, SHADE)
   rect(19, 6, 5, 3, SHADE)
   rect(17, 7, 2, 1, SHADE)
   rect(12, 6, 1, 1, GLINT)
   rect(19, 6, 1, 1, GLINT)
+  // Four legs with a two-frame shuffle: diagonal pairs step in turn.
+  const flip = Math.floor(tick / 5) % 2 === 0
+  const a = flip ? 1 : 0
+  const b = flip ? 0 : 1
+  rect(11, 15, 2, 3 + a, BODY)
+  rect(15, 15, 2, 3 + b, BODY)
+  rect(20, 15, 2, 3 + a, BODY)
+  rect(24, 15, 2, 3 + b, BODY)
+  // Peaked cap on top: domed crown, badge, and overhanging brim.
+  rect(12, 0, 12, 3, HAT)
+  clear([12, 0], [23, 0])
+  rect(17, 1, 2, 1, BADGE)
+  rect(10, 3, 16, 1, BRIM)
   return px
 }
 

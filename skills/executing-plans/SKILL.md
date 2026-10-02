@@ -30,34 +30,25 @@ The plan is already verified. Go straight to execution.
 1. Read the plan file.
 2. Set up task tracking, then proceed. Skip the critical review.
 
-**Task tracking — detect what this session exposes, do not assume.** Which
-progress-tracking tool exists depends on the model and harness flags (newer
-models such as Opus 4.8 / Sonnet 5 omit the task tools by default to save
-context), so probe first and use whatever is present. Pick the **first**
-branch that works:
+**Task tracking — the plan progress pane.** Track progress with the
+`mcp__jacks-skills__update_plan_progress` tool, which draws the plan's steps on
+Jack's plan progress pane. If its schema is not loaded, load it first with
+`ToolSearch(query: "select:mcp__jacks-skills__update_plan_progress")`.
 
-1. **`TaskCreate` family (preferred when present).** These are usually
-   *deferred* tools, so load their schemas first:
-   `ToolSearch(query: "select:TaskCreate,TaskUpdate,TaskList,TaskGet")`. If the
-   result contains their definitions, call `TaskCreate` once per plan task and
-   drive status with `TaskUpdate` in Step 2.
-2. **`TodoWrite` (fallback).** If the `Task*` search returns nothing, try
-   `ToolSearch(query: "select:TodoWrite")`. If found, seed one todo per plan
-   task and update it as you go.
-3. **Inline tracking (always works).** If neither tool is available, do NOT
-   error out. Track progress inline: at the start, post a numbered checklist of
-   the plan's tasks in your reply, and as you execute, restate the checklist
-   with each task marked done / in-progress. This is the graceful fallback and
-   is fully acceptable.
+Every call sends the **full** list of plan tasks, in plan order, each as
+`{ subject, status }`: `subject` is the task's name in a few words, `status`
+is `pending`, `in_progress` or `completed`. Each call replaces the last list,
+so never send a partial list. Now, send every task as `pending`.
 
-Never call a tracking tool whose schema you have not confirmed via `ToolSearch`
-in this session.
+If the tool is not available, do NOT error out. Track progress inline: post a
+numbered checklist of the plan's tasks in your reply, and restate it with each
+task marked done / in-progress as you execute.
 
 ### Step 2: Execute Tasks
 
-For each task, using whichever tracking mechanism you selected in Step 1:
-1. Mark the task **in-progress** (`TaskUpdate`, `TodoWrite`, or the inline
-   checklist).
+For each task:
+1. Mark the task **in-progress**: call `update_plan_progress` with the full
+   list, this task `in_progress`.
 2. Follow each step exactly (plan has bite-sized steps).
 3. Run verifications as specified.
 4. Mark the task **completed** the same way.

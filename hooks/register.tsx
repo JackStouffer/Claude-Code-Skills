@@ -2,6 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, UiPressArgument } from 'claude-code'
 
 import type { Finding } from '../types'
+import { PLAN_COMMAND, PLAN_TOOL_DEFINITION, registerPlanProgress } from './plan-progress'
 
 const PANE = 'review-board'
 const REPORT_TOOL = 'mcp__jacks-skills__report_review_findings'
@@ -175,8 +176,12 @@ const sendFailed = ($: EngineInterface) => (err: unknown) => {
 }
 
 export const register: Register = on => {
+  registerPlanProgress(on)
+
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'review-board', description: 'Show the review findings board' })
+    await $.command.register(PLAN_COMMAND)
+    await $.tool.register(PLAN_TOOL_DEFINITION)
     await $.tool.register({
       name: 'report_review_findings',
       description: "Records a review's final findings on the user's review board.",

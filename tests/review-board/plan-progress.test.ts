@@ -1,0 +1,53 @@
+import { expect, mock, test } from 'claude-code/testing'
+
+const PLAN_TOOL = 'mcp__jacks-skills__update_plan_progress'
+
+const PANE = {
+  plugin: 'jacks-skills',
+  component: 'Pane',
+  requestId: 'plan-progress',
+  surface: 'terminal',
+  props: {
+    title: 'Plan progress',
+    isFocused: false,
+    bodyColumns: 28,
+    placement: 'dock',
+    scroll: { offset: 0, bodyRows: 40 },
+    view: {},
+  },
+} as const
+
+test('the plan tool draws each status, a spinner and a progress bar', async ($, on) => {
+  const clock = mock.clock(on)
+  const opens: string[] = []
+  on('ui.open', (_, e) => (opens.push(e.id), { value: { isPlaced: true } }))
+
+  const subjects = ['Write the parser', 'Wire the CLI', 'Update docs']
+  await $.tool.call({ tool: PLAN_TOOL, steps: subjects.map(subject => ({ subject, status: 'pending' })) })
+  expect(opens).toEqual(['plan-progress'])
+  await $.tool.call({
+    tool: PLAN_TOOL,
+    steps: [
+      { subject: subjects[0], status: 'completed' },
+      { subject: subjects[1], status: 'in_progress' },
+      { subject: subjects[2], status: 'pending' },
+    ],
+  })
+  // Only a plan's start opens the pane, so a pane the user closed stays closed.
+  expect(opens).toEqual(['plan-progress'])
+
+  const ui = await $.ui.mount(PANE)
+  expect(await ui.find({ type: 'Text', text: '✓ Write the parser' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: '⠋ Wire the CLI' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: '☐ Update docs' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: `${'█'.repeat(7)}${'░'.repeat(13)} 1/3` })).toBeDefined()
+
+  await clock.advance(100)
+  expect(await ui.find({ type: 'Text', text: '⠙ Wire the CLI' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('the plan tool refuses a step with an unknown status', async $ => {
+  const ran = await $.tool.call({ tool: PLAN_TOOL, steps: [{ subject: 'One', status: 'done' }] })
+  expect(ran.deny).toContain('status one of pending, in_progress, completed')
+})

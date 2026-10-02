@@ -28,6 +28,10 @@ The new session runs `claude-work --bg` if your shell defines `claude-work`, and
 
 In Ghostty in the terminal, each finding has five buttons: Ignore, then **Run receiving-code-review in Ghostty tab** and **Run receiving-feedback in Ghostty tab**, which open a new Ghostty tab in the same directory that runs the skill on the finding, then **Run receiving-code-review in bg agent** and **Run receiving-feedback in bg agent**, which start a background session as described above. A rerun of the same review replaces its earlier findings.
 
+## Plan progress (mod)
+
+When `jacks-skills:executing-plans` starts a plan, a "Plan progress" pane opens. The skill sends the plan's steps and their statuses through the plugin's `update_plan_progress` tool. The pane shows a checkmark for done, a spinner for in progress, and an empty box for to do. A progress bar is at the bottom. `/plan-progress` opens the pane again after it was closed.
+
 ## Development
 
 The mod is TypeScript. Run `npm install`, then:

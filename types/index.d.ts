@@ -9,8 +9,13 @@ export interface Finding {
   sentTo?: string | undefined
 }
 
+export interface PlanStep {
+  subject: string
+  status: 'pending' | 'in_progress' | 'completed'
+}
+
 declare module 'claude-code' {
   interface PluginState {
-    'jacks-skills': { findings: Finding[]; reporter: string }
+    'jacks-skills': { findings: Finding[]; reporter: string; planSteps: PlanStep[]; planFrame: number }
   }
 }

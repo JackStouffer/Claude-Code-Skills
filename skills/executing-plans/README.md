@@ -17,9 +17,9 @@ verification — and drops only the upfront plan review.
 The correct feature branch is set up before this skill runs. It does not create
 worktrees, switch or create branches, make commits, or push to remotes.
 
-1. **Load the plan** and set up task tracking. It probes for whatever tracking
-   tool the session exposes (`TaskCreate` family, then `TodoWrite`, then an
-   inline checklist) rather than assuming one exists.
+1. **Load the plan** and set up task tracking. It tracks the plan's tasks with
+   the plugin's `update_plan_progress` tool, which draws them on the plan
+   progress pane, and falls back to an inline checklist if the tool is missing.
 2. **Execute each task**: mark in-progress, follow the plan's bite-sized steps
    exactly, run the specified verifications, mark complete.
 3. **Complete**: run the plan's final verification / full test pass and report

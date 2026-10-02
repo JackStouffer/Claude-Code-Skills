@@ -47,6 +47,28 @@ test('the plan tool draws each status, a spinner and a progress bar', async ($, 
   await ui.unmount()
 })
 
+test("a plan's first call opens the pane even when a step has started", async ($, on) => {
+  const opens: string[] = []
+  on('ui.open', (_, e) => (opens.push(e.id), { value: { isPlaced: true } }))
+
+  await $.tool.call({ tool: PLAN_TOOL, steps: [{ subject: 'One', status: 'in_progress' }] })
+  expect(opens).toEqual(['plan-progress'])
+})
+
+test('a completed plan says how to close the pane, and its button closes it', async ($, on) => {
+  const closes: string[] = []
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.close', (_, e) => (closes.push(e.id), { value: undefined }))
+
+  await $.tool.call({ tool: PLAN_TOOL, steps: [{ subject: 'One', status: 'completed' }] })
+  const ui = await $.ui.mount(PANE)
+  expect(await ui.find({ type: 'Text', text: /ctrl\+x x/ })).toBeDefined()
+  const close = await ui.find({ type: 'Button', text: 'Close' })
+  await ui.press({ key: String(close?.key) })
+  expect(closes).toEqual(['plan-progress'])
+  await ui.unmount()
+})
+
 test('the plan tool refuses a step with an unknown status', async $ => {
   const ran = await $.tool.call({ tool: PLAN_TOOL, steps: [{ subject: 'One', status: 'done' }] })
   expect(ran.deny).toContain('status one of pending, in_progress, completed')

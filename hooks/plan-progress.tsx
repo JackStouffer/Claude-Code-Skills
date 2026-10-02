@@ -75,12 +75,13 @@ export const registerPlanProgress = (on: On) => {
         deny: '`steps` must be an array of `{ subject, status }`, status one of pending, in_progress, completed.',
       }
     }
+    const isFirst = (await read($, steps)).length === 0
     await setSteps(
       $,
       input.steps.map(({ subject, status }) => ({ subject, status })),
     )
-    // Open when a plan starts (every step pending) only, so a pane the user closed stays closed.
-    if (input.steps.every(step => step.status === 'pending')) {
+    // Open when a plan starts (the first call, or every step pending) only, so a pane the user closed stays closed.
+    if (isFirst || input.steps.every(step => step.status === 'pending')) {
       const opened = await $.ui.open({ id: PANE, title: 'Plan progress' })
       if (!opened.isPlaced) $.ui.toast('Plan progress: run /plan-progress')
     }
@@ -89,7 +90,7 @@ export const registerPlanProgress = (on: On) => {
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    const { Box, Text } = $.ui.resolve(e)
+    const { Box, Text, Button } = $.ui.resolve(e)
     const list = await read($, steps)
     if (list.length === 0) return <Text dimColor>No plan running.</Text>
     const spin = FRAMES[await read($, frame)]
@@ -115,6 +116,14 @@ export const registerPlanProgress = (on: On) => {
         <Text>
           {bar(done, list.length, width)} {done}/{list.length}
         </Text>
+        {done === list.length && (
+          <Box flexDirection="column">
+            <Text dimColor>Plan complete. Close this pane with ctrl+x x, or:</Text>
+            <Button key="close" role="dismiss" onPress={() => void $.ui.close({ id: PANE })}>
+              Close
+            </Button>
+          </Box>
+        )}
       </Box>
     )
   })

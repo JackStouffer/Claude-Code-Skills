@@ -16,6 +16,13 @@ export interface PlanStep {
 
 declare module 'claude-code' {
   interface PluginState {
-    'jacks-skills': { findings: Finding[]; reporter: string; planSteps: PlanStep[]; planFrame: number }
+    'jacks-skills': {
+      findings: Finding[]
+      reporter: string
+      planSteps: PlanStep[]
+      planFrame: number
+      copFiredAt: number
+      copFrame: number
+    }
   }
 }

@@ -1,5 +1,5 @@
 import type { On } from 'claude-code'
-import { expect, test } from 'claude-code/testing'
+import { expect, mock, test } from 'claude-code/testing'
 
 // Stand in for the engine beneath the plugin so a passed-through write does not
 // touch a real fs; records whether it was reached.
@@ -14,12 +14,31 @@ const stubWrites = (on: On, reached: { did: boolean }) => {
   })
 }
 
+// Stand in for the engine's empty band beneath the plugin, so the hook's next(e) resolves.
+const stubBand = (on: On) => {
+  on('ui.render', { component: 'AbovePrompt' }, ($, e) => $.ui.resolve(e).Box({}))
+}
+
 const logLines = (on: On, lines: string[]) => {
   on('ui.log', (_$, e, next) => {
     lines.push(e.text)
     return next(e)
   })
 }
+
+const BAND = {
+  plugin: 'jacks-skills',
+  component: 'AbovePrompt',
+  surface: 'terminal',
+  props: {
+    hasSurvey: false,
+    isWorking: false,
+    maxRows: 20,
+    bodyColumns: 40,
+    scroll: { offset: 0, bodyRows: 20 },
+    view: {},
+  },
+} as const
 
 const VERBOSE_BLOCK = [
   '# first line of the block',
@@ -50,6 +69,34 @@ test('passes a Write with a terse comment through to the engine', async ($, on) 
 
   expect(res.deny).toBeUndefined()
   expect(reached.did).toBe(true)
+})
+
+test('a block raises the cop siren in the fullscreen terminal and on desktop, not on the main screen', async ($, on) => {
+  mock.clock(on)
+  stubWrites(on, { did: false })
+  stubBand(on)
+  await $.tool.call({ tool: 'Write', file_path: '/repo/a.py', content: VERBOSE_BLOCK })
+  const viewport = (isFullscreen: boolean) => ({ columns: 160, rows: 50, isFullscreen })
+
+  const main = await $.ui.mount({ ...BAND, viewport: viewport(false) })
+  expect(await main.find({ type: 'Raster' })).toBeUndefined()
+  await main.unmount()
+
+  const fullscreen = await $.ui.mount({ ...BAND, viewport: viewport(true) })
+  expect(await fullscreen.find({ type: 'Raster', key: 'cop' })).toBeDefined()
+  await fullscreen.unmount()
+
+  const desktop = await $.ui.mount({ ...BAND, surface: 'desktop' })
+  expect(await desktop.find({ type: 'Svg' })).toBeDefined()
+  await desktop.unmount()
+})
+
+test('with no recent block the band stays empty', async ($, on) => {
+  stubWrites(on, { did: false })
+  stubBand(on)
+  const ui = await $.ui.mount({ ...BAND, viewport: { columns: 160, rows: 50, isFullscreen: true } })
+  expect(await ui.find({ type: 'Raster' })).toBeUndefined()
+  await ui.unmount()
 })
 
 test('denies an Edit whose added text carries a stale reference', async ($, on) => {

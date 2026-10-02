@@ -1,4 +1,7 @@
-import type { On } from 'claude-code'
+import { atom, read, update } from 'claude-code'
+import type { EngineInterface, On, Timer } from 'claude-code'
+
+import { COP_COLUMNS, COP_ROWS, copCells, copSvg } from './clawd'
 
 // Replaces the terse-comments.py / verbose-docstrings.py PostToolUse advisors:
 // judges the added text on tool.call and denies, so the model rewrites before
@@ -204,20 +207,73 @@ const buildDenial = (path: string, reasons: string[]): string => {
   )
 }
 
+// The siren shows for this long after a block, animating; a fresh block restarts the clock.
+const SIREN_MS = 8000
+const firedAt = atom({ plugin: 'jacks-skills', key: 'copFiredAt' } as const, 0)
+const frame = atom({ plugin: 'jacks-skills', key: 'copFrame' } as const, 0)
+
+let siren: Timer | undefined
+
+// One animation tick: advance the frame, and stop once the siren window has passed.
+async function tickSiren($: EngineInterface) {
+  await update($, frame, n => (n + 1) % 60)
+  if (Date.now() - (await read($, firedAt)) > SIREN_MS) {
+    siren?.cancel()
+    siren = undefined
+    await update($, firedAt, () => 0)
+  }
+}
+
+// Flash the band and keep it animating; a fresh block restarts the clock.
+async function raiseSiren($: EngineInterface) {
+  await update($, firedAt, () => Date.now())
+  siren ??= $.clock.every(100, () => void tickSiren($))
+}
+
 // Judges the added text of Edit/Write before it lands and denies on a violation,
-// drawing a dim one-line breadcrumb in the transcript. register.tsx calls this.
+// drawing a dim one-line breadcrumb in the transcript and raising an animated Clawd
+// cop in the band above the prompt. register.tsx calls this.
 export const registerCommentCop = (on: On) => {
-  on('tool.call', { tool: 'Edit' }, ($, e, next) => {
+  on('tool.call', { tool: 'Edit' }, async ($, e, next) => {
     const reasons = check(e.file_path, e.new_string)
     if (reasons.length === 0) return next(e)
     $.ui.log(`comment-cop: refused Edit to ${e.file_path} — ${reasons.length} issue(s)`)
+    await raiseSiren($)
     return { deny: buildDenial(e.file_path, reasons) }
   })
 
-  on('tool.call', { tool: 'Write' }, ($, e, next) => {
+  on('tool.call', { tool: 'Write' }, async ($, e, next) => {
     const reasons = check(e.file_path, e.content)
     if (reasons.length === 0) return next(e)
     $.ui.log(`comment-cop: refused Write to ${e.file_path} — ${reasons.length} issue(s)`)
+    await raiseSiren($)
     return { deny: buildDenial(e.file_path, reasons) }
+  })
+
+  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
+    if (e.props.hasSurvey || (await read($, firedAt)) === 0) return next(e)
+    const tick = await read($, frame)
+    // Fullscreen terminal and desktop only; the default inline TUI passes.
+    let clawd = null
+    if (e.surface === 'desktop') {
+      const { Svg } = $.ui.resolve(e)
+      clawd = <Svg source={copSvg(tick)} alt="Clawd as a four-legged cop in a peaked cap and sunglasses" />
+    } else if (e.surface === 'terminal' && e.viewport?.isFullscreen === true && e.props.bodyColumns >= COP_COLUMNS) {
+      const { Raster } = $.ui.resolve(e)
+      clawd = <Raster key="cop" columns={COP_COLUMNS} rows={COP_ROWS} cells={copCells(tick)} />
+    }
+    if (clawd === null) return next(e)
+    const { Box, Text } = $.ui.resolve(e)
+
+    return (
+      <Box flexDirection="row" alignItems="center" width="100%">
+        {clawd}
+        <Box flexGrow={1} justifyContent="flex-end" flexDirection="row">
+          <Text bold color="red">
+            🚨 Stop right there criminal scum! No one writes a giant comment on my watch!
+          </Text>
+        </Box>
+      </Box>
+    )
   })
 }

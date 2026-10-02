@@ -2,6 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, UiPressArgument } from 'claude-code'
 
 import type { Finding } from '../types'
+import { registerCommentCop } from './comment-cop'
 import { PLAN_COMMAND, PLAN_TOOL_DEFINITION, registerPlanProgress } from './plan-progress'
 
 const PANE = 'review-board'
@@ -176,6 +177,7 @@ const sendFailed = ($: EngineInterface) => (err: unknown) => {
 }
 
 export const register: Register = on => {
+  registerCommentCop(on)
   registerPlanProgress(on)
 
   on('session.start', async ($, e, next) => {

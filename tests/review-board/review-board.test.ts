@@ -160,6 +160,22 @@ test('when the background session fails to start, a button starts a background a
   await ui.unmount()
 })
 
+test('on desktop, a button starts a background agent, not a background session', async ($, on) => {
+  const { runs } = host(on, {}, true)
+  const spawns: string[] = []
+  on('agent.spawn', (_, e) => (spawns.push(e.prompt), { model: 'sonnet', agentId: 'agent-1' }))
+  await $.tool.call({ tool: 'ReportFindings', findings: [FINDING] })
+
+  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  const [button] = await ui.findAll({ type: 'Button', text: 'receiving-feedback' })
+  await ui.press({ key: String(button?.key) })
+
+  expect(runs.some(argv => argv[2]?.includes(' --bg'))).toBe(false)
+  expect(spawns[0]).toContain('`jacks-skills:receiving-feedback`')
+  expect(await ui.find({ type: 'Text', text: /background agent/ })).toBeDefined()
+  await ui.unmount()
+})
+
 test('a send that throws says why in a toast', async ($, on) => {
   host(on, {}, true, false)
   const toasts: string[] = []

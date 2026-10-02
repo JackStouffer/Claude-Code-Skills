@@ -1,5 +1,5 @@
 import { atom, read, update } from 'claude-code'
-import type { EngineInterface, Register } from 'claude-code'
+import type { EngineInterface, Register, UiPressArgument } from 'claude-code'
 
 import type { Finding } from '../types'
 
@@ -87,10 +87,11 @@ async function startBackgroundSession($: EngineInterface, f: Finding, skill: str
   return ran?.exitCode === 0
 }
 
-// If the background session does not start, a background subagent is the separate context, listed under tasks.
-async function sendFinding($: EngineInterface, f: Finding, skill: string) {
+// On desktop a background subagent does the work: it is listed in this session's tasks, which the Code tab shows,
+// at the cost of this session's context budget. Elsewhere it is the fallback when the background session does not start.
+async function sendFinding($: EngineInterface, f: Finding, skill: string, surface: UiPressArgument['surface']) {
   let sentTo = `${skill} (agents view)`
-  if (!(await startBackgroundSession($, f, skill))) {
+  if (surface === 'desktop' || !(await startBackgroundSession($, f, skill))) {
     const spawned = await $.agent.spawn({
       description: agentLabel(f, skill),
       prompt: `Use the Skill tool to run the \`${skill}\` skill on this finding, then follow it:\n\n${findingText(f)}`,
@@ -222,13 +223,17 @@ export const register: Register = on => {
                 <Button
                   key={`feedback:${f.id}`}
                   {...(f === firstOpen && { autoFocus: true })}
-                  onPress={() => void sendFinding($, f, 'jacks-skills:receiving-feedback').catch(sendFailed($))}
+                  onPress={press =>
+                    void sendFinding($, f, 'jacks-skills:receiving-feedback', press.surface).catch(sendFailed($))
+                  }
                 >
                   receiving-feedback
                 </Button>
                 <Button
                   key={`code-review:${f.id}`}
-                  onPress={() => void sendFinding($, f, 'superpowers:receiving-code-review').catch(sendFailed($))}
+                  onPress={press =>
+                    void sendFinding($, f, 'superpowers:receiving-code-review', press.surface).catch(sendFailed($))
+                  }
                 >
                   receiving-code-review
                 </Button>

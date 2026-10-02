@@ -87,19 +87,37 @@ async function startBackgroundSession($: EngineInterface, f: Finding, skill: str
   return ran?.exitCode === 0
 }
 
-// On desktop a background subagent does the work: it is listed in this session's tasks, which the Code tab shows,
-// at the cost of this session's context budget. Elsewhere it is the fallback when the background session does not start.
+// The desktop Code tab does not show the agents view, so there the press drafts a request in the prompt box: sent by
+// the person, it starts a background agent listed in this session's tasks, at the cost of this session's context.
+async function draftAgentRequest($: EngineInterface, f: Finding, skill: string) {
+  const filled = await $.prompt.fill({
+    text: `Start a background agent that runs the \`${skill}\` skill on this review finding and follows it:\n\n${findingText(f)}`,
+  })
+  if (!filled.isFilled) $.ui.toast(`Could not fill the prompt box${filled.refusal ? ` (${filled.refusal})` : ''}`)
+
+  return filled.isFilled
+}
+
+// If the background session does not start, a background subagent is the separate context, listed under tasks.
+async function spawnAgent($: EngineInterface, f: Finding, skill: string) {
+  const spawned = await $.agent.spawn({
+    description: agentLabel(f, skill),
+    prompt: `Use the Skill tool to run the \`${skill}\` skill on this finding, then follow it:\n\n${findingText(f)}`,
+  })
+  if (spawned.deny !== undefined) $.ui.toast(`Could not start an agent: ${spawned.deny}`, { timeoutMs: 8000 })
+
+  return spawned.deny === undefined
+}
+
 async function sendFinding($: EngineInterface, f: Finding, skill: string, surface: UiPressArgument['surface']) {
-  let sentTo = `${skill} (agents view)`
-  if (surface === 'desktop' || !(await startBackgroundSession($, f, skill))) {
-    const spawned = await $.agent.spawn({
-      description: agentLabel(f, skill),
-      prompt: `Use the Skill tool to run the \`${skill}\` skill on this finding, then follow it:\n\n${findingText(f)}`,
-    })
-    if (spawned.deny !== undefined) {
-      $.ui.toast(`Could not start an agent: ${spawned.deny}`, { timeoutMs: 8000 })
-      return
-    }
+  let sentTo: string
+  if (surface === 'desktop') {
+    if (!(await draftAgentRequest($, f, skill))) return
+    sentTo = `${skill} (prompt box, press Enter)`
+  } else if (await startBackgroundSession($, f, skill)) {
+    sentTo = `${skill} (agents view)`
+  } else {
+    if (!(await spawnAgent($, f, skill))) return
     sentTo = `${skill} (background agent)`
   }
   await update($, findings, list => list.map(one => (one.id === f.id ? { ...one, sentTo } : one)))

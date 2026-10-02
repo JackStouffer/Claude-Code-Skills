@@ -160,10 +160,10 @@ test('when the background session fails to start, a button starts a background a
   await ui.unmount()
 })
 
-test('on desktop, a button starts a background agent, not a background session', async ($, on) => {
+test('on desktop, a button drafts a background agent request in the prompt box', async ($, on) => {
   const { runs } = host(on, {}, true)
-  const spawns: string[] = []
-  on('agent.spawn', (_, e) => (spawns.push(e.prompt), { model: 'sonnet', agentId: 'agent-1' }))
+  const fills: string[] = []
+  on('prompt.fill', (_, e) => (fills.push(e.text), { isFilled: true, text: e.text, cursor: e.text.length }))
   await $.tool.call({ tool: 'ReportFindings', findings: [FINDING] })
 
   const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
@@ -171,8 +171,10 @@ test('on desktop, a button starts a background agent, not a background session',
   await ui.press({ key: String(button?.key) })
 
   expect(runs.some(argv => argv[2]?.includes(' --bg'))).toBe(false)
-  expect(spawns[0]).toContain('`jacks-skills:receiving-feedback`')
-  expect(await ui.find({ type: 'Text', text: /background agent/ })).toBeDefined()
+  expect(fills[0]).toContain('background agent')
+  expect(fills[0]).toContain('`jacks-skills:receiving-feedback`')
+  expect(fills[0]).toContain('Off-by-one drops the last row')
+  expect(await ui.find({ type: 'Text', text: /prompt box, press Enter/ })).toBeDefined()
   await ui.unmount()
 })
 
@@ -183,7 +185,7 @@ test('a send that throws says why in a toast', async ($, on) => {
   // Nothing answers agent.spawn, so the fallback rejects.
   await $.tool.call({ tool: 'ReportFindings', findings: [FINDING] })
 
-  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   const [button] = await ui.findAll({ type: 'Button', text: 'receiving-code-review' })
   await ui.press({ key: String(button?.key) })
 

@@ -14,7 +14,9 @@ description: >
 
 Read an existing plan file, assess whether it's large enough to benefit from splitting, identify natural break points where the application is in a runnable and verifiable state, and produce separate plan files — each independently executable with its own verification steps.
 
-**Core principle:** Each sub-plan must leave the application in a working, testable state. Never split mid-feature where the app would be broken.
+**Core principle 1:** Each sub-plan must leave the application in a working, testable state. Never split mid-feature where the app would be broken.
+
+**Core principle 2:** When more than one valid split exists, favor the one that lets the most parts run **in parallel**. A split where parts 2 and 3 are independent — each fully runnable and verifiable on its own — beats a split where every part must run in strict sequence, even if it means one or two more parts total. Parallelizable parts shorten wall-clock time and let independent sessions work without coordinating.
 
 ## When to Use
 
@@ -37,6 +39,8 @@ digraph splitter {
     "Large enough to split?" [shape=diamond];
     "Tell user plan is small enough" [shape=box];
     "Identify runnable break points" [shape=box];
+    "Map task dependencies" [shape=box];
+    "Compare candidate splits, favor parallelism" [shape=box];
     "Can achieve fewer than 6 splits?" [shape=diamond];
     "Merge smaller sections to reduce count" [shape=box];
     "Generate sub-plan files" [shape=box];
@@ -47,7 +51,9 @@ digraph splitter {
     "Assess size and complexity" -> "Large enough to split?";
     "Large enough to split?" -> "Tell user plan is small enough" [label="no"];
     "Large enough to split?" -> "Identify runnable break points" [label="yes"];
-    "Identify runnable break points" -> "Can achieve fewer than 6 splits?" ;
+    "Identify runnable break points" -> "Map task dependencies";
+    "Map task dependencies" -> "Compare candidate splits, favor parallelism";
+    "Compare candidate splits, favor parallelism" -> "Can achieve fewer than 6 splits?" ;
     "Can achieve fewer than 6 splits?" -> "Generate sub-plan files" [label="yes"];
     "Can achieve fewer than 6 splits?" -> "Merge smaller sections to reduce count" [label="no"];
     "Merge smaller sections to reduce count" -> "Generate sub-plan files";
@@ -83,6 +89,29 @@ A valid break point is a boundary between tasks where:
 3. Group tightly-coupled tasks that must ship together (e.g., a migration + the code that uses it)
 4. Mark boundaries where the answer to #2 is "yes" and the grouping from #3 is satisfied
 
+### Step 2b: Map Dependencies and Find Parallel Branches
+
+A break point that produces a sequence is good. A break point that produces **independent branches** is better.
+
+1. For each candidate section, list what it *reads from* and *writes to*: files, modules, DB tables, API routes, config.
+2. Two sections are **independent** when neither depends on the other's output and they don't modify the same files. Independent sections can run in parallel.
+3. Build the dependency graph: which sections must come before which, and which have no edge between them.
+4. Look specifically for a split that turns one long sequential chain into a shared base followed by independent branches — e.g., Part 1 lays the foundation, then Parts 2 and 3 both build on Part 1 but not on each other.
+
+Each parallel branch must still satisfy Core principle 1 on its own: fully runnable and independently verifiable at its end state, without waiting for its sibling branches.
+
+### Step 2c: Compare Candidate Splits, Favor Parallelism
+
+When you have more than one valid way to split, score each candidate and pick the one that maximizes parallelism — not the one with the fewest parts.
+
+Prefer, in order:
+
+1. **More independent branches that can run in parallel.** A split into 4 parts where 2 and 3 are independent beats a clean split into 3 strictly-sequential parts.
+2. **A shorter critical path** (longest chain of must-be-sequential parts). Fewer sequential hops to reach the end = faster wall-clock.
+3. **Fewer total parts** — only as a tie-breaker, once parallelism and critical path are equal.
+
+A couple extra parts is an acceptable price for independent branches. Do not merge independent branches back together just to lower the part count — that destroys the parallelism you were looking for.
+
 ### Step 3: Determine Split Count
 
 **Target: fewer than 6 sub-plans.** Reasons:
@@ -92,6 +121,8 @@ A valid break point is a boundary between tasks where:
 - Fewer splits = fewer integration risk points
 
 If you identified more than 5 break points, merge adjacent small sections until you have 3-5 sub-plans. Prefer merging sections that share files or modules.
+
+**Exception — never merge away parallelism.** Only merge sections that are already sequential (one depends on the other). Never merge two independent branches that could run in parallel just to hit the part count; keeping them separate is the whole point. If honoring the parallel branches pushes you to 6 parts, 6 is fine.
 
 ### Step 4: Generate Sub-Plan Files
 
@@ -111,7 +142,11 @@ For each sub-plan, create a new file alongside the original:
 
 **Goal:** [What this part specifically accomplishes]
 
-**Prerequisites:** [What must be completed before this part — reference prior parts]
+**Depends on:** [Which parts must be finished before this one can start — list part numbers, or "none"]
+
+**Runs in parallel with:** [Which parts can be executed at the same time as this one — list part numbers, or "none"]
+
+**Prerequisites:** [What must be completed before this part — reference the parts named in "Depends on"]
 
 **Starting state:** [What the codebase looks like when this part begins]
 
@@ -158,14 +193,22 @@ Plan split into N parts:
 2. **Part 2: [title]** — [1-sentence summary] (N tasks)
 ...
 
+Execution order:
+- Part 1 first (foundation).
+- Parts 2 and 3 can run in parallel after Part 1 — independent, each runnable and verifiable on its own.
+- Part 4 after Parts 2 and 3 complete.
+
 Files created:
 - docs/superpowers/plans/feature-name-part-1.md
 - docs/superpowers/plans/feature-name-part-2.md
 ...
 
-Execute in order. Each part leaves the app in a working state.
-Ready to start with Part 1?
+Each part leaves the app in a working state. Parts marked parallel have no
+dependency on each other and can be executed in separate sessions at once.
+Ready to start?
 ```
+
+Describe the real dependency structure you found — a strict chain, a fan-out, or a diamond. If every part is sequential, say so plainly rather than implying parallelism that isn't there.
 
 ## Splitting Heuristics
 
@@ -174,7 +217,12 @@ Ready to start with Part 1?
 - After a migration + its dependent code are both done
 - After an API endpoint is complete end-to-end
 - After a refactoring step that doesn't change behavior
-- After infrastructure/setup tasks (config, dependencies, scaffolding)
+- After infrastructure/setup tasks (config, dependencies, scaffolding) — these often unlock several independent branches that can then run in parallel
+
+**Break points that unlock parallelism (prefer these):**
+- After a shared foundation (schema, base types, config, scaffolding) that several features build on independently
+- Where the plan touches separate subsystems that don't share files (e.g., a backend endpoint and an unrelated frontend widget)
+- Where two features both depend on Part 1 but not on each other
 
 **Bad break points:**
 - Between a type definition and the code that uses it
@@ -187,7 +235,9 @@ Ready to start with Part 1?
 
 | Mistake | Fix |
 |---------|-----|
-| Splitting too granularly (8+ parts) | Merge adjacent sections that share modules |
+| Splitting too granularly (8+ parts) | Merge adjacent *sequential* sections that share modules — never merge independent branches |
+| Collapsing independent branches to hit a low part count | Keep parallel branches separate; a couple extra parts is worth the parallelism |
+| Picking the fewest-parts split by reflex | Compare candidates — favor the one with more independent, parallelizable branches |
 | Breaking mid-feature | Group coupled tasks — split only at runnable boundaries |
 | Vague verification ("check it works") | Write exact commands with expected output |
 | Missing prerequisites section | Each part must state what prior parts provide |

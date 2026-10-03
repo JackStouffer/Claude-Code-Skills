@@ -21,17 +21,26 @@ leaves the app broken between the pieces.
    where the app compiles, runs, and can be verified, and the work so far is
    independently valuable. Tightly-coupled tasks (a migration and the code that
    uses it) are grouped so a split never lands mid-feature.
-3. **Target fewer than 6 splits.** If there are more break points than that,
-   adjacent small sections are merged — preferring sections that share files or
-   modules — until there are 3–5 sub-plans.
-4. **Generate sub-plan files.** Each part is written as
-   `{original-name}-part-{N}.md` alongside the original, with a goal,
-   prerequisites, starting state, renumbered tasks, and a verification section.
-5. **Write concrete verification.** Each part gets specific, runnable, observable
+3. **Map dependencies and favor parallelism.** Build the dependency graph between
+   candidate sections and look for independent branches that can run at the same
+   time. When more than one valid split exists, it picks the one that maximizes
+   parallel branches and shortens the critical path — not the one with the fewest
+   parts. A split into 4 parts where parts 2 and 3 are independent beats a clean
+   3-part sequential split.
+4. **Target fewer than 6 splits.** If there are more break points than that,
+   adjacent *sequential* sections are merged — preferring sections that share
+   files or modules — until there are 3–5 sub-plans. Independent branches are
+   never merged away just to lower the count; 6 parts is fine if that preserves
+   parallelism.
+5. **Generate sub-plan files.** Each part is written as
+   `{original-name}-part-{N}.md` alongside the original, with a goal, a
+   `Depends on` / `Runs in parallel with` dependency statement, prerequisites,
+   starting state, renumbered tasks, and a verification section.
+6. **Write concrete verification.** Each part gets specific, runnable, observable
    checks (exact commands with expected output), and later parts re-run earlier
    checks so regressions surface.
-6. **Present a summary.** Lists the parts, the files created, and the execution
-   order, then offers to start Part 1.
+7. **Present a summary.** Lists the parts, the files created, and the execution
+   order — including which parts can run in parallel — then offers to start.
 
 Each sub-plan points at `superpowers:subagent-driven-development` or
 `superpowers:executing-plans` for its own execution.

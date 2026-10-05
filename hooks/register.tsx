@@ -86,10 +86,13 @@ const agentLabel = (f: Finding, skill: string) => `${bareName(skill)}: ${f.summa
 const shellQuote = (text: string) => `'${text.replaceAll("'", `'\\''`)}'`
 
 // claude-work can be a shell function (a wrapper that sets credentials), which only an interactive shell sees.
+// Job control off (+m): with it on, the shell takes the terminal's foreground from the TUI, which then exits on EIO.
+const interactive = (shell: string, command: string) => [shell, '+m', '-ic', command]
+
 async function claudeCommand($: EngineInterface) {
   const shell = (await $.env.get('SHELL')) ?? '/bin/sh'
   const found = await $.process
-    .run([shell, '-ic', 'command -v claude-work'], { timeoutMs: 5000 })
+    .run(interactive(shell, 'command -v claude-work'), { timeoutMs: 5000 })
     .catch(() => undefined)
 
   return found?.exitCode === 0 ? 'claude-work' : 'claude'
@@ -121,7 +124,7 @@ async function startBackgroundSession($: EngineInterface, f: Finding, skill: str
   const flags = (await parentPluginDirs($)).map(dir => ` --plugin-dir ${shellQuote(dir)}`).join('')
   const shell = (await $.env.get('SHELL')) ?? '/bin/sh'
   const launch = `${await claudeCommand($)} --bg --name ${shellQuote(agentLabel(f, skill))}${flags} ${shellQuote(`/${skill} ${findingText(f)}`)}`
-  const ran = await $.process.run([shell, '-ic', launch], { timeoutMs: 15000 }).catch(() => undefined)
+  const ran = await $.process.run(interactive(shell, launch), { timeoutMs: 15000 }).catch(() => undefined)
 
   return ran?.exitCode === 0
 }

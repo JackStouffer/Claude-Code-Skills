@@ -38,7 +38,7 @@ function host(on: On, variables: Record<string, string>, hasClaudeWork: boolean,
     runs.push([...e.argv])
     if (e.argv[0] === 'sh') return ran(0, 'claude --plugin-dir=/plug/a --model opus\n')
     if (e.argv.includes('command -v claude-work')) return ran(hasClaudeWork ? 0 : 1)
-    if (e.argv[2]?.includes(' --bg')) return ran(canBackground ? 0 : 1)
+    if (e.argv.at(-1)?.includes(' --bg')) return ran(canBackground ? 0 : 1)
 
     return ran(0)
   })
@@ -117,8 +117,9 @@ test('a button starts a background session running claude-work with the parent p
   const feedback = await ui.findAll({ type: 'Button', text: 'receiving-feedback' })
   await ui.press({ key: String(feedback[0]?.key) })
 
-  const [shell, flag, launch] = runs.at(-1) ?? []
-  expect([shell, flag]).toEqual(['/bin/zsh', '-ic'])
+  // Job control off (+m): an interactive shell would otherwise take the terminal from the TUI.
+  const [shell, monitor, flag, launch] = runs.at(-1) ?? []
+  expect([shell, monitor, flag]).toEqual(['/bin/zsh', '+m', '-ic'])
   expect(
     launch?.startsWith(
       "claude-work --bg --name 'receiving-feedback: Off-by-one drops the last row' --plugin-dir '/plug/a' " +
@@ -170,8 +171,8 @@ test('without claude-work, the background session runs claude', async ($, on) =>
   const [button] = await ui.findAll({ type: 'Button', text: 'receiving-code-review' })
   await ui.press({ key: String(button?.key) })
 
-  expect(runs.find(argv => argv[0] === '/bin/bash')).toEqual(['/bin/bash', '-ic', 'command -v claude-work'])
-  expect(runs.at(-1)?.[2]?.startsWith("claude --bg --name 'receiving-code-review: Off-by-one")).toBe(true)
+  expect(runs.find(argv => argv[0] === '/bin/bash')).toEqual(['/bin/bash', '+m', '-ic', 'command -v claude-work'])
+  expect(runs.at(-1)?.[3]?.startsWith("claude --bg --name 'receiving-code-review: Off-by-one")).toBe(true)
   await ui.unmount()
 })
 

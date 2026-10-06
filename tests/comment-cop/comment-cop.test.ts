@@ -3,7 +3,8 @@ import { expect, mock, test } from 'claude-code/testing'
 
 // Stand in for the engine beneath the plugin so a passed-through write does not
 // touch a real fs; records whether it was reached.
-const stubWrites = (on: On, reached: { did: boolean }) => {
+const stubWrites = (on: On, reached: { did: boolean }, env: Record<string, string> = {}) => {
+  mock.env(on, env)
   on('tool.call', { tool: 'Write' }, () => {
     reached.did = true
     return { result: 'wrote' }
@@ -97,6 +98,16 @@ test('with no recent block the band stays empty', async ($, on) => {
   const ui = await $.ui.mount({ ...BAND, viewport: { columns: 160, rows: 50, isFullscreen: true } })
   expect(await ui.find({ type: 'Raster' })).toBeUndefined()
   await ui.unmount()
+})
+
+test('passes a write under the harness temp dir through unjudged', async ($, on) => {
+  const reached = { did: false }
+  stubWrites(on, reached, { TMPDIR: '/var/folders/xx/T/' })
+
+  const res = await $.tool.call({ tool: 'Write', file_path: '/var/folders/xx/T/a.py', content: VERBOSE_BLOCK })
+
+  expect(res.deny).toBeUndefined()
+  expect(reached.did).toBe(true)
 })
 
 test('denies an Edit whose added text carries a stale reference', async ($, on) => {

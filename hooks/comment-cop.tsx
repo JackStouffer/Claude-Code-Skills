@@ -193,6 +193,15 @@ const check = (path: string, text: string): string[] => {
   return [...comments, ...docstrings, ...patternReasons(text)]
 }
 
+// Writes under the harness temp dir are scratch (test fixtures, staged edits),
+// never source we judge. TMPDIR is absolute; a relative file_path never matches.
+const inTempDir = async ($: EngineInterface, path: string): Promise<boolean> => {
+  const tmp = await $.env.get('TMPDIR')
+  if (tmp === undefined || tmp === '') return false
+  const base = tmp.endsWith('/') ? tmp : tmp + '/'
+  return path.startsWith(base)
+}
+
 const buildDenial = (path: string, reasons: string[]): string => {
   const hasComment = reasons.some(r => r.startsWith('comment') || r.includes('comment block'))
   const hasDocstring = reasons.some(r => r.startsWith('docstring'))
@@ -235,6 +244,7 @@ async function raiseSiren($: EngineInterface) {
 // cop in the band above the prompt. register.tsx calls this.
 export const registerCommentCop = (on: On) => {
   on('tool.call', { tool: 'Edit' }, async ($, e, next) => {
+    if (await inTempDir($, e.file_path)) return next(e)
     const reasons = check(e.file_path, e.new_string)
     if (reasons.length === 0) return next(e)
     $.ui.log(`comment-cop: refused Edit to ${e.file_path} — ${reasons.length} issue(s)`)
@@ -243,6 +253,7 @@ export const registerCommentCop = (on: On) => {
   })
 
   on('tool.call', { tool: 'Write' }, async ($, e, next) => {
+    if (await inTempDir($, e.file_path)) return next(e)
     const reasons = check(e.file_path, e.content)
     if (reasons.length === 0) return next(e)
     $.ui.log(`comment-cop: refused Write to ${e.file_path} — ${reasons.length} issue(s)`)

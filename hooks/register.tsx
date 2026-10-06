@@ -54,6 +54,9 @@ async function setFindings($: EngineInterface, fn: (list: Finding[]) => Finding[
   await update($, findings, fn)
   const count = (await read($, findings)).length
   $.ui.status(count ? `${count} review findings · /review-board` : undefined)
+  // A pane carried over from a prior session has no live state subscription, so its frame
+  // stays stale on an update until an unrelated event repaints it. Force the redraw.
+  $.ui.invalidate('ui.render')
 }
 
 async function addBatch($: EngineInterface, source: string, raw: readonly RawFinding[]) {
@@ -212,6 +215,10 @@ export const register: Register = on => {
         },
       },
     })
+
+    // A review-board pane left open by a prior session shows that session's last frame; repaint it
+    // against this session's findings instead of waiting for a scroll to force the redraw.
+    $.ui.invalidate('ui.render')
 
     return next(e)
   })

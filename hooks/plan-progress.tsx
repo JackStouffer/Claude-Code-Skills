@@ -23,6 +23,9 @@ const isStep = (value: unknown): value is PlanStep =>
 
 async function setSteps($: EngineInterface, list: PlanStep[]) {
   await update($, steps, () => list)
+  // A pane carried over from a prior session has no live state subscription, so its frame
+  // stays stale on an update until an unrelated event repaints it. Force the redraw.
+  $.ui.invalidate('ui.render')
   const isRunning = list.some(step => step.status === 'in_progress')
   if (isRunning && !spinner) {
     spinner = $.clock.every(100, () => void update($, frame, n => (n + 1) % TICKS))

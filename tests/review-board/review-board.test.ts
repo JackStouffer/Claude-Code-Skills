@@ -102,6 +102,16 @@ test('the status line points back to the board, which /review-board opens with t
   await ui.unmount()
 })
 
+test('recording findings forces a repaint, so a pane carried over from a prior session is not left stale', async ($, on) => {
+  host(on, {}, false)
+  const invalidated: string[] = []
+  on('ui.invalidate', (_, e) => (invalidated.push(e.event), { value: undefined }))
+
+  await $.tool.call({ tool: 'ReportFindings', findings: [FINDING] })
+
+  expect(invalidated).toContain('ui.render')
+})
+
 test('a button starts a background session running claude-work with the parent plugin dirs', async ($, on) => {
   const { runs } = host(on, { SHELL: '/bin/zsh' }, true)
   await $.tool.call({ tool: 'ReportFindings', findings: [FINDING, { ...FINDING, summary: 'Second' }] })

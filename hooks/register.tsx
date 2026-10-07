@@ -219,6 +219,10 @@ export const register: Register = on => {
     // A review-board pane left open by a prior session shows that session's last frame; repaint it
     // against this session's findings instead of waiting for a scroll to force the redraw.
     $.ui.invalidate('ui.render')
+    // The status line is set imperatively, so a /clear that empties the findings atom leaves the
+    // old count stuck below the prompt. Re-sync it to this session's findings.
+    const count = (await read($, findings)).length
+    $.ui.status(count ? `${count} review findings · /review-board` : undefined)
 
     return next(e)
   })

@@ -101,7 +101,7 @@ KEEP blocks stay as text. If `ReportFindings` is not available, print every bloc
 Then:
 
 1. **Counts** per verdict.
-2. **Gaps.** List behavior the in-scope code adds that no test catches, including anything only a deleted test caught. "None" is only allowed when every DELETE either has no plausible bug or has an Owner shown failing under mutation.
+2. **Gaps.** List behavior the in-scope code adds that no test catches, including anything only a deleted test caught. Cite each gap by its location in the production code as `path:line` (a range when it spans several lines), name the behavior, and name a plausible bug no test would catch. "None" is only allowed when every DELETE either has no plausible bug or has an Owner shown failing under mutation.
 3. **Patterns.** Give the 2–3 most common patterns as one-line rules for wherever tests get written, such as CLAUDE.md.
 4. **Ask** whether to apply the verdicts.
 

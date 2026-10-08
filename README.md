@@ -13,6 +13,7 @@ Once installed, each skill is invoked under the plugin namespace, e.g. `/jacks-s
 - `jacks-skills:plan-splitter`: Break a large implementation plan into smaller, independently executable sub-plans, each leaving the app in a working, verifiable state.
 - `jacks-skills:test-audit`: Find low-value tests (tests no plausible bug would fail), report a verdict per test, and delete, rewrite, or merge them once approved.
 - `jacks-skills:fix-merge-conflicts`: Resolve the merge conflicts in the current working tree by combining the intent of both branches — code edits only, no git commands.
+- `jacks-skills:merge-back`: Merge a review-board worktree's branch back into the branch it came from, resolve the conflicts, and remove the worktree.
 
 ## Review board (mod)
 
@@ -21,12 +22,14 @@ When `/code-review`, `ce-code-review`, `ce-doc-review`, `ponytail-review`, `pony
 The pane does not take the keyboard by itself. Run `/review-board` to give it the keyboard. The other way is ctrl+x, release, then Tab (in Ghostty, ctrl+Tab switches tabs, so let go of ctrl first). Clicks reach the pane only in fullscreen mode. In the pane, Tab moves between buttons, Enter presses the highlighted one, and Esc returns to the prompt. The arrows scroll the pane, and the left arrow opens the agents view. Each finding has three buttons:
 
 - **Ignore**: removes the finding from the board.
-- **receiving-feedback**: starts a fresh background session in the same directory that runs `/jacks-skills:receiving-feedback` on the finding. The session is in the agents view (`claude agents`).
+- **receiving-feedback**: starts a fresh background session in a new worktree (see below) that runs `/jacks-skills:receiving-feedback` on the finding. The session is in the agents view (`claude agents`).
 - **receiving-code-review**: does the same with `/superpowers:receiving-code-review`.
 
 The new session runs `claude-work --bg` if your shell defines `claude-work`, and `claude --bg` if not. It passes on the current session's `--plugin-dir` flags. If the background session does not start, the button starts a background subagent instead: it has its own context and is listed under tasks.
 
-In Ghostty in the terminal, each finding has five buttons: Ignore, then **Run receiving-code-review in Ghostty tab** and **Run receiving-feedback in Ghostty tab**, which open a new Ghostty tab in the same directory that runs the skill on the finding, then **Run receiving-code-review in bg agent** and **Run receiving-feedback in bg agent**, which start a background session as described above. A rerun of the same review replaces its earlier findings.
+In Ghostty in the terminal, each finding has five buttons: Ignore, then **Run receiving-code-review in Ghostty tab** and **Run receiving-feedback in Ghostty tab**, which open a new Ghostty tab in a new worktree that runs the skill on the finding, then **Run receiving-code-review in bg agent** and **Run receiving-feedback in bg agent**, which start a background session as described above. A rerun of the same review replaces its earlier findings.
+
+Each session or agent that a button starts works in its own git worktree, at `.claude/worktrees/review-<id>`. The worktree is on a new branch, `review/<id>`, made from the current branch and tracking it. The button refuses, with a toast, when no branch is checked out or the working tree has uncommitted or untracked changes, because the worktree starts from the last commit. If `.claude/worktrees/` is not ignored, the button adds it to `.git/info/exclude`. When the work is done, tell the session, or run `/jacks-skills:merge-back` in it. The skill commits the work, merges the current branch in and resolves any conflicts, fast-forwards the current branch, and removes the worktree. On desktop, the drafted request runs in the current checkout, with no worktree.
 
 ## Plan progress (mod)
 

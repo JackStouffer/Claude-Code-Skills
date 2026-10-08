@@ -37,7 +37,16 @@ tell application "Ghostty"
 end tell
 end run`
 
+// A worktree inside the checkout shows as untracked there, which would fail the next send's clean-tree check.
+const EXCLUDE_WORKTREES = `git check-ignore -q .claude/worktrees/x && exit
+f=$(git rev-parse --git-path info/exclude) && mkdir -p "$(dirname "$f")" && echo /.claude/worktrees/ >> "$f"`
+
 type RawFinding = Omit<Finding, 'id' | 'source' | 'sentTo'>
+interface Worktree {
+  path: string
+  branch: string
+  base: string
+}
 
 const bareName = (skill: string) => skill.slice(skill.lastIndexOf(':') + 1)
 
@@ -108,26 +117,63 @@ async function parentPluginDirs($: EngineInterface) {
   return [...(ps?.stdout ?? '').matchAll(/--plugin-dir(?:=|\s+)(\S+)/g)].flatMap(match => match[1] ?? [])
 }
 
+const git = ($: EngineInterface, args: string[]) => $.process.run(['git', ...args]).catch(() => undefined)
+
+// The session works on its own branch, which tracks the current one: that upstream is where merge-back merges it.
+async function addWorktree($: EngineInterface, f: Finding): Promise<Worktree | undefined> {
+  const [root, base] =
+    (await git($, ['rev-parse', '--show-toplevel', '--abbrev-ref', 'HEAD']))?.stdout.split('\n') ?? []
+  if (!root || !base || base === 'HEAD') {
+    $.ui.toast('Check out a branch first: the review session branches off it', { timeoutMs: 8000 })
+    return
+  }
+  // The worktree starts at the last commit, so the session would not see uncommitted changes.
+  if ((await git($, ['status', '--porcelain']))?.stdout !== '') {
+    $.ui.toast('Commit or stash your changes first: the review session starts from the last commit', {
+      timeoutMs: 8000,
+    })
+    return
+  }
+  await $.process.run(['sh', '-c', EXCLUDE_WORKTREES], { cwd: root }).catch(() => undefined)
+  const worktree = { path: `${root}/.claude/worktrees/review-${f.id}`, branch: `review/${f.id}`, base }
+  const added = await git($, ['worktree', 'add', '--track', '-b', worktree.branch, worktree.path, base])
+  if (added?.exitCode !== 0) {
+    $.ui.toast(`Could not add a worktree: ${added?.stderr.trim() ?? 'git did not run'}`, { timeoutMs: 8000 })
+    return
+  }
+
+  return worktree
+}
+
+// The worktree holds no work yet when its session fails to start, so forcing its removal loses nothing.
+async function removeWorktree($: EngineInterface, worktree: Worktree) {
+  await git($, ['worktree', 'remove', '--force', worktree.path])
+  await git($, ['branch', '-D', worktree.branch])
+}
+
+const mergeNote = (worktree: Worktree) =>
+  `This session works in its own git worktree, on branch \`${worktree.branch}\` off \`${worktree.base}\`. When the user says the work is done, run the \`jacks-skills:merge-back\` skill.`
+
 // The tab's initial input is typed into its shell, so the multi-line prompt goes through a file.
-async function openGhosttyTab($: EngineInterface, f: Finding, skill: string) {
+async function openGhosttyTab($: EngineInterface, f: Finding, skill: string, worktree: Worktree) {
   const promptPath = `/tmp/review-board/${f.id}.md`
   await $.fs.write(promptPath, `/${skill} ${findingText(f)}`)
   const flags = (await parentPluginDirs($)).map(dir => ` --plugin-dir ${shellQuote(dir)}`).join('')
-  const launch = `${await claudeCommand($)}${flags} "$(cat ${promptPath})"\n`
-  const ran = await $.process
-    .run(['osascript', '-e', OPEN_GHOSTTY_TAB, await $.session.cwd(), launch])
-    .catch(() => undefined)
+  const launch = `${await claudeCommand($)}${flags} --append-system-prompt ${shellQuote(mergeNote(worktree))} "$(cat ${promptPath})"\n`
+  const ran = await $.process.run(['osascript', '-e', OPEN_GHOSTTY_TAB, worktree.path, launch]).catch(() => undefined)
   if (ran?.exitCode !== 0) $.ui.toast('Could not open a Ghostty tab', { timeoutMs: 8000 })
 
   return ran?.exitCode === 0
 }
 
 // `claude --bg` starts a session in the background, listed in the agents view (`claude agents`).
-async function startBackgroundSession($: EngineInterface, f: Finding, skill: string) {
+async function startBackgroundSession($: EngineInterface, f: Finding, skill: string, worktree: Worktree) {
   const flags = (await parentPluginDirs($)).map(dir => ` --plugin-dir ${shellQuote(dir)}`).join('')
   const shell = (await $.env.get('SHELL')) ?? '/bin/sh'
-  const launch = `${await claudeCommand($)} --bg --name ${shellQuote(agentLabel(f, skill))}${flags} ${shellQuote(`/${skill} ${findingText(f)}`)}`
-  const ran = await $.process.run(interactive(shell, launch), { timeoutMs: 15000 }).catch(() => undefined)
+  const launch = `${await claudeCommand($)} --bg --name ${shellQuote(agentLabel(f, skill))}${flags} --append-system-prompt ${shellQuote(mergeNote(worktree))} ${shellQuote(`/${skill} ${findingText(f)}`)}`
+  const ran = await $.process
+    .run(interactive(shell, launch), { cwd: worktree.path, timeoutMs: 15000 })
+    .catch(() => undefined)
 
   return ran?.exitCode === 0
 }
@@ -144,14 +190,22 @@ async function draftAgentRequest($: EngineInterface, f: Finding, skill: string) 
 }
 
 // If the background session does not start, a background subagent is the separate context, listed under tasks.
-async function spawnAgent($: EngineInterface, f: Finding, skill: string) {
+async function spawnAgent($: EngineInterface, f: Finding, skill: string, worktree: Worktree) {
   const spawned = await $.agent.spawn({
     description: agentLabel(f, skill),
-    prompt: `Use the Skill tool to run the \`${skill}\` skill on this finding, then follow it:\n\n${findingText(f)}`,
+    prompt: `Use the Skill tool to run the \`${skill}\` skill on this finding, then follow it:\n\n${findingText(f)}\n\n${mergeNote(worktree)}`,
+    cwd: worktree.path,
   })
   if (spawned.deny !== undefined) $.ui.toast(`Could not start an agent: ${spawned.deny}`, { timeoutMs: 8000 })
 
   return spawned.deny === undefined
+}
+
+async function launchInWorktree($: EngineInterface, f: Finding, skill: string, isTab: boolean, worktree: Worktree) {
+  if (isTab) return (await openGhosttyTab($, f, skill, worktree)) ? `${skill} (Ghostty tab)` : undefined
+  if (await startBackgroundSession($, f, skill, worktree)) return `${skill} (agents view)`
+
+  return (await spawnAgent($, f, skill, worktree)) ? `${skill} (background agent)` : undefined
 }
 
 async function sendFinding(
@@ -161,20 +215,20 @@ async function sendFinding(
   isTab: boolean,
   surface: UiPressArgument['surface'],
 ) {
-  let sentTo: string
-  if (isTab) {
-    if (!(await openGhosttyTab($, f, skill))) return
-    sentTo = `${skill} (Ghostty tab)`
-  } else if (surface === 'desktop') {
-    if (!(await draftAgentRequest($, f, skill))) return
-    sentTo = `${skill} (prompt box, press Enter)`
-  } else if (await startBackgroundSession($, f, skill)) {
-    sentTo = `${skill} (agents view)`
+  let sentTo: string | undefined
+  // ponytail: the desktop request runs in this session's checkout; a worktree there needs the Agent tool to take a cwd.
+  if (!isTab && surface === 'desktop') {
+    sentTo = (await draftAgentRequest($, f, skill)) ? `${skill} (prompt box, press Enter)` : undefined
   } else {
-    if (!(await spawnAgent($, f, skill))) return
-    sentTo = `${skill} (background agent)`
+    const worktree = await addWorktree($, f)
+    if (!worktree) return
+    sentTo = await launchInWorktree($, f, skill, isTab, worktree).catch(async (err: unknown) => {
+      await removeWorktree($, worktree)
+      throw err
+    })
+    if (!sentTo) await removeWorktree($, worktree)
   }
-  await update($, findings, list => list.map(one => (one.id === f.id ? { ...one, sentTo } : one)))
+  if (sentTo) await update($, findings, list => list.map(one => (one.id === f.id ? { ...one, sentTo } : one)))
 }
 
 // A button's press has no caller to report to, so a failed send says why in a toast.

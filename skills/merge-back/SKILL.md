@@ -39,9 +39,23 @@ Never use `--no-verify`. If the hook needs installed dependencies that this work
 install them first (for example, `npm install`).
 
 If the branch has no commits ahead of the base (`git rev-list --count @{upstream}..HEAD` prints
-`0`) and nothing to commit, skip to Step 5.
+`0`) and nothing to commit, skip to Step 6. (The merge lock is not needed: Steps 5–6 do not
+touch the base.)
 
-## Step 3: Merge the base into this branch
+## Step 3: Take the merge lock
+
+Steps 4–5 touch the shared base, so only one session may run them at a time. Take a repo-wide
+lock before merging and hold it until the fast-forward is done:
+
+```sh
+lock="$(git rev-parse --git-common-dir)/merge-back.lock"
+until mkdir "$lock" 2>/dev/null; do sleep 2; done   # atomic; blocks until another session frees it
+```
+
+If this blocks for more than a couple of minutes, a session may have died holding the lock. Tell
+the user; after they confirm no other merge-back is running, the lock clears with `rmdir "$lock"`.
+
+## Step 4: Merge the base into this branch
 
 ```sh
 git merge --no-edit @{upstream}
@@ -55,7 +69,7 @@ skill flagged a judgment call, show it to the user and get agreement before you 
 After a merge that changed files, run the project's checks (tests, typecheck, lint) if it has
 them. Fix failures before you continue.
 
-## Step 4: Fast-forward the base
+## Step 5: Fast-forward the base
 
 Find the worktree that has the base checked out:
 
@@ -68,12 +82,20 @@ git worktree list --porcelain   # look for "branch refs/heads/<base>"
 - If no worktree has it checked out, run `git fetch . <work branch>:<base>`. This also
   fast-forwards only.
 
-If the fast-forward fails because the base moved (another session merged first), go back to
-Step 3. If it fails because of uncommitted changes in the base's worktree, stop. Tell the user
-which files are in the way and leave this worktree in place. Do not stash, reset, or check out
-anything in the base's worktree. Those are the user's changes.
+If the fast-forward fails because the base moved (another session merged first — rare while the
+lock is held), go back to Step 4 without re-taking the lock; you still hold it. If it fails
+because of uncommitted changes in the base's worktree, stop (release the lock with
+`rmdir "$lock"` first). Tell the user which files are in the way and leave this worktree in
+place. Do not stash, reset, or check out anything in the base's worktree. Those are the user's
+changes.
 
-## Step 5: Remove the worktree and branch
+Once the fast-forward succeeds, release the lock:
+
+```sh
+rmdir "$lock"
+```
+
+## Step 6: Remove the worktree and branch
 
 Run these from the base's worktree, or from the main worktree, not from this one:
 
@@ -86,7 +108,7 @@ Use `branch -d`, not `-D`. It refuses if the work is not on the base. If `worktr
 refuses because of untracked or modified files, stop and show them to the user. Do not use
 `--force`.
 
-## Step 6: Report
+## Step 7: Report
 
 Tell the user:
 
@@ -100,3 +122,5 @@ Tell the user:
 - Never use `--force`, `--no-verify`, `reset --hard`, or `-D`. If a safe command refuses, stop and
   report. Do not override it.
 - Never touch uncommitted changes in another worktree.
+- If you stop to report a problem while holding the merge lock (Steps 4–5), release it first with
+  `rmdir "$lock"` so other sessions are not blocked.

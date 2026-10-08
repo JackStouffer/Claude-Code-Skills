@@ -87,14 +87,11 @@ test('ReportFindings after test-audit lands under test-audit, without a second r
   await ui.unmount()
 })
 
-test('the status line points back to the board, which /review-board opens with the keyboard', async ($, on) => {
+test('/review-board opens the board with the keyboard', async ($, on) => {
   host(on, {}, false)
-  const statuses: (string | undefined)[] = []
   const opens: boolean[] = []
-  on('ui.status', (_, e) => (statuses.push(e.text), { value: undefined }))
   on('ui.open', (_, e) => (opens.push(Boolean(e.focus)), { value: { isPlaced: true } }))
   await $.tool.call({ tool: 'ReportFindings', findings: [FINDING] })
-  expect(statuses.at(-1)).toBe('1 review findings · /review-board')
 
   await $.command.run({
     command: 'review-board',
@@ -114,27 +111,7 @@ test('the status line points back to the board, which /review-board opens with t
   expect(await ui.find({ type: 'Text', text: /^Run \/review-board to use the buttons/ })).toBeDefined()
   const [ignore] = await ui.findAll({ type: 'Button', text: 'Ignore' })
   await ui.press({ key: String(ignore?.key) })
-  expect(statuses.at(-1)).toBeUndefined()
   await ui.unmount()
-})
-
-test('session start re-syncs the status line, so a /clear that empties the findings does not leave it stuck', async ($, on) => {
-  host(on, {}, false)
-  const statuses: (string | undefined)[] = []
-  on('ui.status', (_, e) => (statuses.push(e.text), { value: undefined }))
-  on('command.register', (_, e) => ({ value: { command: e.name } }))
-  on('tool.register', (_, e) => ({ value: { tool: e.name } }))
-  on('ui.invalidate', () => ({ value: undefined }))
-  on('session.start', (_, e) => ({ cwd: e.cwd }))
-
-  // No findings this session: the start must clear any line a prior session left below the prompt.
-  await $.session.start({ cwd: '/repo', surface: 'terminal', isInteractive: true })
-  expect(statuses.at(-1)).toBeUndefined()
-
-  // With findings, the start restores the count.
-  await $.tool.call({ tool: 'ReportFindings', findings: [FINDING] })
-  await $.session.start({ cwd: '/repo', surface: 'terminal', isInteractive: true })
-  expect(statuses.at(-1)).toBe('1 review findings · /review-board')
 })
 
 test('recording findings forces a repaint, so a pane carried over from a prior session is not left stale', async ($, on) => {

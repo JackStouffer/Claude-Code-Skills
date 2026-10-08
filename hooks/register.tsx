@@ -58,11 +58,8 @@ When your findings are final, call the \`${REPORT_TOOL}\` tool once with \`sourc
 const isRawFinding = (value: unknown): value is RawFinding =>
   typeof value === 'object' && value !== null && typeof (value as { summary?: unknown }).summary === 'string'
 
-// The status line is the way back to a pane that was closed or tabbed away.
 async function setFindings($: EngineInterface, fn: (list: Finding[]) => Finding[]) {
   await update($, findings, fn)
-  const count = (await read($, findings)).length
-  $.ui.status(count ? `${count} review findings · /review-board` : undefined)
   // A pane carried over from a prior session has no live state subscription, so its frame
   // stays stale on an update until an unrelated event repaints it. Force the redraw.
   $.ui.invalidate('ui.render')
@@ -273,10 +270,6 @@ export const register: Register = on => {
     // A review-board pane left open by a prior session shows that session's last frame; repaint it
     // against this session's findings instead of waiting for a scroll to force the redraw.
     $.ui.invalidate('ui.render')
-    // The status line is set imperatively, so a /clear that empties the findings atom leaves the
-    // old count stuck below the prompt. Re-sync it to this session's findings.
-    const count = (await read($, findings)).length
-    $.ui.status(count ? `${count} review findings · /review-board` : undefined)
 
     return next(e)
   })

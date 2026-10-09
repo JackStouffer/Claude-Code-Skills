@@ -14,6 +14,7 @@ Once installed, each skill is invoked under the plugin namespace, e.g. `/jacks-s
 - `jacks-skills:test-audit`: Find low-value tests (tests no plausible bug would fail), report a verdict per test, and delete, rewrite, or merge them once approved.
 - `jacks-skills:fix-merge-conflicts`: Resolve the merge conflicts in the current working tree by combining the intent of both branches — code edits only, no git commands.
 - `jacks-skills:merge-back`: Merge a review-board worktree's branch back into the branch it came from, resolve the conflicts, and remove the worktree.
+- `jacks-skills:clean-worktrees`: Remove the review-board worktrees and branches left behind by sessions that never ran merge-back, asking before it discards unmerged work.
 
 ## Review board (mod)
 
@@ -29,7 +30,7 @@ The new session runs `claude-work --bg` if your shell defines `claude-work`, and
 
 In Ghostty in the terminal, each finding has five buttons: Ignore, then **Run receiving-code-review in Ghostty tab** and **Run receiving-feedback in Ghostty tab**, which open a new Ghostty tab in a new worktree that runs the skill on the finding, then **Run receiving-code-review in bg agent** and **Run receiving-feedback in bg agent**, which start a background session as described above. A rerun of the same review replaces its earlier findings.
 
-Each session or agent that a button starts works in its own git worktree, at `.claude/worktrees/review-<id>`. The worktree is on a new branch, `review/<id>`, made from the current branch and tracking it. The button refuses, with a toast, when no branch is checked out or the working tree has uncommitted or untracked changes, because the worktree starts from the last commit. If `.claude/worktrees/` is not ignored, the button adds it to `.git/info/exclude`. When the work is done, tell the session, or run `/jacks-skills:merge-back` in it. The skill commits the work, merges the current branch in and resolves any conflicts, fast-forwards the current branch, and removes the worktree. On desktop, the drafted request runs in the current checkout, with no worktree.
+Each session or agent that a button starts works in its own git worktree, at `.claude/worktrees/review-<id>`. The worktree is on a new branch, `review/<id>`, made from the current branch and tracking it. The button refuses, with a toast, when no branch is checked out or the working tree has uncommitted or untracked changes, because the worktree starts from the last commit. If `.claude/worktrees/` is not ignored, the button adds it to `.git/info/exclude`. When the work is done, tell the session, or run `/jacks-skills:merge-back` in it. The skill commits the work, merges the current branch in and resolves any conflicts, fast-forwards the current branch, and removes the worktree. If a session ends without merge-back, `/jacks-skills:clean-worktrees` removes its worktree once its work is on the base branch, and asks before it discards work that is not. On desktop, the drafted request runs in the current checkout, with no worktree.
 
 ## Plan progress (mod)
 

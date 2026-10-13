@@ -7,13 +7,6 @@ description: Execute an already-verified implementation plan with progress
   git — branches are set up ahead of time by the user.
 ---
 
-This skill executes pre-verified plan files and does
-
-- todo tracking
-- exact step-following, with trivial fixes recorded
-- per-task verifications 
-- no plan review.
-
 User manages git. The correct feature branch is already set up before
 this skill runs. **Do not** create worktrees, switch or create branches, check
 which branch you are on, or make commits.
@@ -28,7 +21,8 @@ execution.
 
 ### Step 1: Load Plan
 
-1. Read the plan file.
+1. Read the plan file. If no plan was given, stop and ask the user for
+   direction. Do not search for a plan or write one.
 2. Set up task tracking, then proceed. Skip the critical review.
 
 Track progress with the `mcp__jacks-skills__update_plan_progress` tool, which
@@ -42,8 +36,8 @@ is `pending`, `in_progress` or `completed`. Each call replaces the last list,
 so never send a partial list. Now, send every task as `pending`.
 
 If the tool is not available, do NOT error out. Track progress inline: post a
-numbered checklist of the plan's tasks in your reply, and restate it with each
-task marked done / in-progress as you execute.
+numbered checklist of the plan's tasks in your reply. Restate it only when a
+task's status changes.
 
 ### Step 2: Execute Tasks
 
@@ -95,6 +89,6 @@ failing test pass.
 ## Remember
 
 - Follow plan steps exactly; record every deviation and skip.
-- Reference skills when the plan says to.
+- Load and follow any skill the plan names.
 - Stop when blocked, don't guess.
 - Do not touch git

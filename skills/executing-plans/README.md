@@ -11,8 +11,9 @@ rounds beforehand, so that upfront step is redundant.
 
 ## How the skill works
 
-It keeps the execution benefits: todo tracking, exact step-following, per-task
-verification, and drops only the upfront plan review.
+It keeps the execution benefits: todo tracking, exact step-following (trivial
+fixes allowed but recorded), per-task verification, and drops only the upfront
+plan review.
 
 The correct feature branch is set up before this skill runs. It does not create
 worktrees, switch or create branches, make commits, or push to remotes.
@@ -21,10 +22,13 @@ worktrees, switch or create branches, make commits, or push to remotes.
    the plugin's `update_plan_progress` tool, which draws them on the plan
    progress pane, and falls back to an inline checklist if the tool is missing.
 2. **Execute each task**: mark in-progress, follow the plan's bite-sized steps
-   exactly, run the specified verifications, mark complete.
+   exactly, run the specified verifications, mark complete. Trivial mechanical
+   fixes to a step (a missing import, a typo) are allowed, and so is skipping a
+   step whose result is already in the code. Each one is recorded.
 3. **Complete**: run the plan's final verification / full test pass and report
-   results.
+   results. The report opens with every deviation and skipped step, so you know
+   where to focus review.
 
 Skipping the *plan review* is the only thing dropped: per-task verifications
 and the final test pass are not skipped. It stops and asks rather than guessing
-when blocked.
+when blocked, or when a fix would change behavior, an interface, or scope.

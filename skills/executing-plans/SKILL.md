@@ -19,7 +19,10 @@ this skill runs. **Do not** create worktrees, switch or create branches, check
 which branch you are on, or make commits.
 
 **Do NOT** re-review the plan or raise plan-level concerns before starting.
-The plan is already verified. Go straight to execution.
+The plan is already verified. Go straight to execution. Don't critique the
+plan's design or approach, but do stop when a step can't be carried out as
+written against the actual code. Plans can go stale between verification and
+execution.
 
 ## The Process
 
@@ -67,6 +70,8 @@ After all tasks complete and verified:
 
 - Hit a blocker (missing dependency, test fails, instruction unclear)
 - You don't understand an instruction
+- A step doesn't match the code (a file path that doesn't exist, a function
+  signature that has changed since the plan was written)
 - Verification fails repeatedly
 
 **Ask for clarification rather than guessing.**

@@ -73,17 +73,13 @@ test('instructs the review skills to report, and leaves other skills alone', asy
   expect(other.text).toBe('Brainstorm.')
 })
 
-test('ReportFindings after test-audit lands under test-audit, without a second report instruction', async ($, on) => {
+test('ReportFindings lands under code-review', async ($, on) => {
   host(on, {}, false)
-  on('skill.prompt', (_, e) => ({ text: e.text }))
-
-  const audit = await $.skill.prompt({ skill: 'jacks-skills:test-audit', text: 'Audit.' })
-  expect(audit.text).toBe('Audit.')
-  await $.tool.call({ tool: 'ReportFindings', findings: [{ ...FINDING, category: 'delete' }] })
+  await $.tool.call({ tool: 'ReportFindings', findings: [{ ...FINDING, category: 'bug' }] })
 
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  expect(await ui.find({ type: 'Text', text: /^\[delete\] Off-by-one/ })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: /^test-audit · src\/app\.py:12/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^\[bug\] Off-by-one/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^code-review · src\/app\.py:12/ })).toBeDefined()
   await ui.unmount()
 })
 

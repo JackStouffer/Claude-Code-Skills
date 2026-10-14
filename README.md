@@ -18,7 +18,7 @@ Once installed, each skill is invoked under the plugin namespace, e.g. `/jacks-s
 
 ## Review board (mod)
 
-When `/code-review`, `ce-code-review`, `ce-doc-review`, `ponytail-review`, `ponytail-audit` or `test-audit` finishes, its findings appear in a "Review findings" pane. `/review-board` opens the pane by hand, or brings it back after it was closed or hidden. While findings exist, the status line shows their count. Findings last for the session only.
+When `/code-review`, `ce-code-review`, `ce-doc-review`, `ponytail-review` or `ponytail-audit` finishes, its findings appear in a "Review findings" pane. `/review-board` opens the pane by hand, or brings it back after it was closed or hidden. While findings exist, the status line shows their count. Findings last for the session only.
 
 The pane does not take the keyboard by itself. Run `/review-board` to give it the keyboard. The other way is ctrl+x, release, then Tab (in Ghostty, ctrl+Tab switches tabs, so let go of ctrl first). Clicks reach the pane only in fullscreen mode. In the pane, Tab moves between buttons, Enter presses the highlighted one, and Esc returns to the prompt. The arrows scroll the pane, and the left arrow opens the agents view. Each finding has three buttons:
 

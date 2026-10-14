@@ -8,10 +8,7 @@ import { PLAN_COMMAND, PLAN_TOOL_DEFINITION, registerPlanProgress } from './plan
 const PANE = 'review-board'
 const REPORT_TOOL = 'mcp__jacks-skills__report_review_findings'
 const findings = atom({ plugin: 'jacks-skills', key: 'findings' } as const, [])
-// The last skill to start that reports through the built-in ReportFindings tool.
-const reporter = atom({ plugin: 'jacks-skills', key: 'reporter' } as const, 'code-review')
 
-const REPORTFINDINGS_SKILLS = new Set(['code-review', 'test-audit'])
 const INSTRUCTED_SKILLS = new Set(['ce-code-review', 'ce-doc-review', 'ponytail-review', 'ponytail-audit'])
 
 const FEEDBACK = 'jacks-skills:receiving-feedback'
@@ -287,10 +284,9 @@ export const register: Register = on => {
     return { text: 'Review board opened. Tab moves between buttons, Enter presses one, Esc returns to the prompt.' }
   })
 
-  on('skill.prompt', async ($, e, next) => {
+  on('skill.prompt', async (_, e, next) => {
     const out = await next(e)
     const skill = bareName(e.skill)
-    if (REPORTFINDINGS_SKILLS.has(skill)) await update($, reporter, () => skill)
 
     return INSTRUCTED_SKILLS.has(skill) ? { text: out.text + reportInstruction(skill) } : out
   })
@@ -311,7 +307,8 @@ export const register: Register = on => {
     if (ran.deny === undefined && !e.findings.some(one => one.outcome)) {
       await addBatch(
         $,
-        await read($, reporter),
+        // code-review is the only skill that reports through the built-in ReportFindings tool.
+        'code-review',
         e.findings.map(one => ({
           file: one.file,
           line: one.line,

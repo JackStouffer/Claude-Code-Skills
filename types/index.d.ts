@@ -18,7 +18,6 @@ declare module 'claude-code' {
   interface PluginState {
     'jacks-skills': {
       findings: Finding[]
-      reporter: string
       planSteps: PlanStep[]
       planFrame: number
       copFiredAt: number

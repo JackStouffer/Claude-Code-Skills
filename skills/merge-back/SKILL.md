@@ -49,11 +49,19 @@ lock before merging and hold it until the fast-forward is done:
 
 ```sh
 lock="$(git rev-parse --git-common-dir)/merge-back.lock"
-until mkdir "$lock" 2>/dev/null; do sleep 2; done   # atomic; blocks until another session frees it
+SECONDS=0
+until mkdir "$lock" 2>/dev/null; do   # atomic; waits until another session frees it
+  [ "$SECONDS" -ge 600 ] && { echo "merge lock still held after 10 minutes: $lock"; exit 1; }
+  sleep 2
+done
 ```
 
-If this blocks for more than a couple of minutes, a session may have died holding the lock. Tell
-the user; after they confirm no other merge-back is running, the lock clears with `rmdir "$lock"`.
+Run this with `run_in_background: true`, so the Bash tool's timeout does not stop the wait.
+
+If it gives up after 10 minutes, another session holds the lock, or a session died while it held
+the lock. Stop. Tell the user the lock path and that the lock is held. Say that if no other
+merge-back is running, `rmdir "$lock"` clears it. Do not remove the lock yourself, and do not
+continue. Wait for the user's instructions.
 
 ## Step 4: Merge the base into this branch
 

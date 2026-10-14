@@ -41,6 +41,12 @@ end run`
 const EXCLUDE_WORKTREES = `git check-ignore -q .claude/worktrees/x && exit
 f=$(git rev-parse --git-path info/exclude) && mkdir -p "$(dirname "$f")" && echo /.claude/worktrees/ >> "$f"`
 
+// The tree is clean, so a memory file the checkout has and the worktree lacks is gitignored. A link keeps one copy.
+// shortcut: only the root memory files, add nested ones if a repo ignores those too.
+const LINK_MEMORY = `for f in CLAUDE.md CLAUDE.local.md .claude/CLAUDE.md; do
+  [ ! -f "$f" ] || [ -e "$1/$f" ] || { mkdir -p "$1/$(dirname "$f")" && ln -s "$PWD/$f" "$1/$f"; }
+done`
+
 type RawFinding = Omit<Finding, 'id' | 'source' | 'sentTo'>
 interface Worktree {
   path: string
@@ -138,6 +144,7 @@ async function addWorktree($: EngineInterface, f: Finding): Promise<Worktree | u
     $.ui.toast(`Could not add a worktree: ${added?.stderr.trim() ?? 'git did not run'}`, { timeoutMs: 8000 })
     return
   }
+  await $.process.run(['sh', '-c', LINK_MEMORY, 'sh', worktree.path], { cwd: root }).catch(() => undefined)
 
   return worktree
 }

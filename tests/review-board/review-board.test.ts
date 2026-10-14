@@ -160,6 +160,10 @@ test('a button starts a background session running claude-work with the parent p
   expect(add?.[6]).toMatch(WORKTREE)
   expect(add?.[7]).toBe('main')
   expect(cwds.at(-1)).toBe(add?.[6])
+  // Gitignored memory files are linked in from the checkout.
+  const link = runs.findIndex(argv => argv[0] === 'sh' && argv[2]?.includes('ln -s'))
+  expect(runs[link]?.at(-1)).toBe(add?.[6])
+  expect(cwds[link]).toBe('/repo')
   expect(await ui.find({ type: 'Text', text: 'sent to jacks-skills:receiving-feedback (agents view)' })).toBeDefined()
 
   await ui.press({ key: String(ignore[1]?.key) })

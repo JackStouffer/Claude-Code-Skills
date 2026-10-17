@@ -12,6 +12,7 @@ Once installed, each skill is invoked under the plugin namespace, e.g. `/jacks-s
 - `jacks-skills:feature-planner`: Write a plan file by breaking down a feature request and then asking a series of questions about the implementation.
 - `jacks-skills:plan-splitter`: Break a large implementation plan into smaller, independently executable sub-plans, each leaving the app in a working, verifiable state.
 - `jacks-skills:test-audit`: Find low-value tests (tests no plausible bug would fail), report a verdict per test, and delete, rewrite, or merge them once approved.
+- `jacks-skills:over-engineering-review`: Review the branch's changes for complexity that exceeds the requirement, fetching the ticket or doc first and verifying each finding with a fresh `over-engineering-verifier` agent.
 - `jacks-skills:fix-merge-conflicts`: Resolve the merge conflicts in the current working tree by combining the intent of both branches — code edits only, no git commands.
 - `jacks-skills:merge-back`: Merge a review-board worktree's branch back into the branch it came from, resolve the conflicts, and remove the worktree.
 - `jacks-skills:clean-worktrees`: Remove the review-board worktrees and branches left behind by sessions that never ran merge-back, asking before it discards unmerged work.
@@ -55,7 +56,7 @@ This repo is a Claude Code plugin marketplace. Add it once, then install the plu
 /plugin install jacks-skills@jacks-skills
 ```
 
-The `feature-planner` skill's `fp-question-gen` agent ships with the plugin and loads automatically — no separate install step.
+The `feature-planner` skill's `fp-question-gen` agent and the `over-engineering-review` skill's `over-engineering-verifier` agent ship with the plugin and load automatically — no separate install step.
 
 ## Updating
 

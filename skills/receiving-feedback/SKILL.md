@@ -144,12 +144,15 @@ Output a report, not code changes. Use this structure:
    (CONFIRMED, UNREFUTED, REFUTED, or CANNOT VERIFY).
 3. **Counterarguments considered** — each rescue argument you tested, and why it did or did not
    save the feedback. This part proves that you tried to disprove the feedback.
-4. **If the verdict is correct: the exact change list** — the specific files, functions, and
+4. **If the verdict is correct: the proposed fix** — a brief description of the fix, in two or
+   three sentences. Say what the fix does and why it solves the confirmed problem. Do not list
+   the edit sites here. The change list does that.
+5. **If the verdict is correct: the exact change list** — the specific files, functions, and
    lines to change. Describe them precisely enough to hand to an implementer. This is the
    payoff: the verification already located every edit site.
-5. **If the verdict is incorrect: the refutation** — the source that kills it, stated as fact.
+6. **If the verdict is incorrect: the refutation** — the source that kills it, stated as fact.
    Do not apologize to the reviewer. Do not hedge.
-6. **Open decisions** — any judgment call that the change depends on, for example scope or a
+7. **Open decisions** — any judgment call that the change depends on, for example scope or a
    value to pick. Flag it for the human. Recommend one option. Do not survey them all.
 
 Then stop. **Do not apply changes.** If the verdict is correct, offer to apply the changes and

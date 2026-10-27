@@ -31,8 +31,8 @@ can come back either way, then looks.
    rolled up to an overall correct / partially correct / incorrect call that
    scores what survives, not the headline.
 6. **Report**, don't apply. Every verdict cites a file read this session. If the
-   feedback is correct, the report includes the exact change list; if wrong, the
-   source that refutes it.
+   feedback is correct, the report includes a brief description of the
+   proposed fix and the exact change list; if wrong, the source that refutes it.
 
 ## Core principle
 

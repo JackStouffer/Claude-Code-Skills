@@ -48,20 +48,28 @@ Steps 4–5 touch the shared base, so only one session may run them at a time. T
 lock before merging and hold it until the fast-forward is done:
 
 ```sh
-lock="$(git rev-parse --git-common-dir)/merge-back.lock"
+lock="$(git rev-parse --path-format=absolute --git-common-dir)/merge-back.lock"
+echo "lock path: $lock"
 SECONDS=0
 until mkdir "$lock" 2>/dev/null; do   # atomic; waits until another session frees it
   [ "$SECONDS" -ge 600 ] && { echo "merge lock still held after 10 minutes: $lock"; exit 1; }
   sleep 2
 done
+echo "lock taken: $lock"
 ```
 
 Run this with `run_in_background: true`, so the Bash tool's timeout does not stop the wait.
 
+The `$lock` variable does not carry over to later Bash calls. Note the absolute path that the
+command printed (it starts with `/`). Every later step that says `rmdir <lock path>` means that
+exact absolute path, written out in full. Never use a relative path such as `.git/merge-back.lock`,
+and never rebuild the path yourself: a relative path resolves against the current directory, so it
+misses the real lock, or the wrong lock gets taken.
+
 If it gives up after 10 minutes, another session holds the lock, or a session died while it held
-the lock. Stop. Tell the user the lock path and that the lock is held. Say that if no other
-merge-back is running, `rmdir "$lock"` clears it. Do not remove the lock yourself, and do not
-continue. Wait for the user's instructions.
+the lock. Stop. Tell the user the absolute lock path and that the lock is held. Say that if no
+other merge-back is running, `rmdir <lock path>` clears it. Do not remove the lock yourself, and
+do not continue. Wait for the user's instructions.
 
 ## Step 4: Merge the base into this branch
 
@@ -93,14 +101,14 @@ git worktree list --porcelain   # look for "branch refs/heads/<base>"
 If the fast-forward fails because the base moved (another session merged first — rare while the
 lock is held), go back to Step 4 without re-taking the lock; you still hold it. If it fails
 because of uncommitted changes in the base's worktree, stop (release the lock with
-`rmdir "$lock"` first). Tell the user which files are in the way and leave this worktree in
+`rmdir <lock path>` first). Tell the user which files are in the way and leave this worktree in
 place. Do not stash, reset, or check out anything in the base's worktree. Those are the user's
 changes.
 
 Once the fast-forward succeeds, release the lock:
 
 ```sh
-rmdir "$lock"
+rmdir <lock path>   # the absolute path that Step 3 printed
 ```
 
 ## Step 6: Remove the worktree and branch
@@ -131,4 +139,4 @@ Tell the user:
   report. Do not override it.
 - Never touch uncommitted changes in another worktree.
 - If you stop to report a problem while holding the merge lock (Steps 4–5), release it first with
-  `rmdir "$lock"` so other sessions are not blocked.
+  `rmdir <lock path>` so other sessions are not blocked.

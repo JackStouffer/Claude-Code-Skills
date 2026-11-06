@@ -1,60 +1,72 @@
 First line of your reply must be: `MODEL: <your exact model id>`.
 
-You are judging two feature-plan files that were both generated from the SAME
-confirmed spec. You do not know which model wrote which; they are labelled only
-`A` and `B`, and the order is randomised. Judge the plans, not the label.
+You are judging one feature-plan file that was generated from a confirmed spec.
 
-The confirmed spec (the ONLY input the plan authors were given) is at:
+The confirmed spec (the ONLY input the plan author was given) is at:
 {{SPEC_PATH}}
 
-Read the spec's `## Consolidated spec (confirmed)` section in full — that section
-is the source of truth. Every goal, non-goal, edge case, design decision, and
-open question there is a checkable item.
+Read the whole spec. All of it is the source of truth: the `## Background`
+section (current state and claims from docs and people), every domain section,
+the deferred items, and the `## Consolidated spec (confirmed)` section if there
+is one. Every goal, non-goal, edge case, design decision, background fact,
+background conflict, risk, and open question in it is a checkable item.
 
-The two plans to judge:
-- A: {{PLAN_A}}
-- B: {{PLAN_B}}
+The plan to judge: {{PLAN}}
 
 A plan is "acceptable" as an implementation deliverable when ALL of these hold:
 1. Every required section is present and non-empty: Overview; Goals; Non-Goals;
-   Detailed Design with User Flow, Data Model, API/Interface, Edge Cases & Error
-   Handling, and Design Decisions; Implementation Notes; Open Questions.
+   Current State & Verified Facts (required only if the spec has a Background
+   section); Detailed Design with User Flow, Data Model, API/Interface, Edge
+   Cases & Error Handling, and Design Decisions; Implementation Plan; Open
+   Questions.
 2. Spec coverage is high: the plan carries the spec's goals, non-goals, decided
-   edge cases, and chosen design decisions. Missing a decided item is a defect.
-3. No fabrication: the plan does not invent requirements, decisions, entities, or
-   constraints that the spec does not support. A weaker model's most dangerous
-   failure is confidently adding things that were never decided — count these.
-4. Design Decisions state, for each real tradeoff, WHAT was chosen and WHY. This
-   is the highest-value section; a plan that lists decisions without the rationale
-   the spec gives is degraded.
-5. The two spec open questions (retention period; multi-region dedup uniqueness)
-   are carried into Open Questions, NOT silently resolved or dropped.
+   edge cases, chosen design decisions, and background facts. Missing a decided
+   item or a background fact is a defect. Background facts about existing code
+   belong in Current State & Verified Facts with their source tag. A background
+   fact restated as a new goal, requirement, or decision is a defect.
+3. No fabrication: `fabricated_items` is empty. A fabricated item is anything the
+   plan states that the spec does not support: a requirement, decision, entity,
+   field, endpoint detail, constraint, condition, gate, deadline, or risk. Count
+   every reason or rationale that the spec does not give, even a plausible one.
+   An item the plan clearly marks as not in the spec (for example "Not specified
+   in the spec") is not fabricated. One fabricated item makes the plan NOT
+   acceptable, however small.
+4. Design Decisions state, for each real tradeoff, WHAT was chosen and WHY, with
+   the why taken from the spec. This is the highest-value section; a plan that
+   lists decisions without the rationale the spec gives is degraded. A decision
+   that has no reason in the spec must say `Reason not recorded`.
+5. Every deferred or open item in the spec is carried into Open Questions, NOT
+   silently resolved or dropped.
+6. Every background conflict (a doc or person claim that contradicts the code
+   or another claim) is flagged in Open Questions, naming both sides. A plan that
+   states one side as fact anywhere, without flagging the conflict, is NOT
+   acceptable.
+7. Every risk that the spec records without a decision (for example a "must" or
+   a "Risk:" line with no chosen mitigation) is carried into Open Questions as an
+   open risk, NOT resolved by the plan choosing a mitigation.
 
-For EACH plan independently, evaluate against the spec. Count the spec's checkable
-items (goals, non-goals, decided edge cases, chosen design decisions — count them
-yourself from the consolidated spec) and how many the plan actually represents.
-
-Then, blind head-to-head: which plan would an engineer rather implement from?
-Judge on faithfulness to the spec, completeness, and decision rationale — not
-length or prose polish. Answer `A`, `B`, or `tie`.
+Count the spec's checkable items (goals, non-goals, decided edge cases, chosen
+design decisions, background facts, background conflicts, undecided risks —
+count them yourself from the whole spec) and how many the plan actually
+represents. Quote or closely paraphrase the plan's text for each fabricated item.
 
 Write {{OUT_PATH}} as JSON only:
 {
-  "plans": {
-    "A": {
-      "missing_or_empty_sections": ["..."],
-      "spec_items_total": n,
-      "spec_items_covered": n,
-      "fabricated_items": ["..."],
-      "decision_quality_1_5": n,
-      "open_questions_carried": true/false,
-      "acceptable": true/false
-    },
-    "B": { ... same keys ... }
-  },
-  "preference": "A" | "B" | "tie",
-  "preference_reason": "one line",
+  "missing_or_empty_sections": ["..."],
+  "spec_items_total": n,
+  "spec_items_covered": n,
+  "missing_items": ["..."],
+  "fabricated_items": ["..."],
+  "decision_quality_1_5": n,
+  "open_questions_carried": true/false,
+  "conflicts_flagged": true/false,
+  "undecided_risks_carried": true/false,
+  "acceptable": true/false,
   "notes": "two sentences max"
 }
 
-Return only the MODEL line and your one-line preference.
+`conflicts_flagged` and `undecided_risks_carried` are `true` when the spec has
+none of that kind.
+
+Return only the MODEL line and one line: `acceptable` or `not acceptable`, with
+the main reason.

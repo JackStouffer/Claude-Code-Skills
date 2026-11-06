@@ -1,12 +1,5 @@
 # Plan Notes: Idempotent Webhook Ingestion Endpoint
 
-This file is the fixed fixture for the Phase-4 test. It is written in the exact
-shape the skill produces at the end of Phase 3: a seed idea, one section per
-questioning round recording decisions (not discussion), and a confirmed
-consolidated spec. The Phase-4 subagent under test receives ONLY this file. The
-judge scores each plan against the `## Consolidated spec (confirmed)` section
-below, so every checkable item lives there.
-
 ## Seed idea
 
 We receive webhooks from a payments provider (Stripe-style). They retry

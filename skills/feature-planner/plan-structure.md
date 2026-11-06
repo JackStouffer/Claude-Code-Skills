@@ -14,6 +14,10 @@
 
 - Bulleted list of what this feature explicitly WILL NOT do (and why)
 
+## Current State & Verified Facts
+
+Background facts with their source tags, grouped by subsystem
+
 ## Detailed Design
 
 ### User Flow
@@ -39,15 +43,28 @@ decisions made during questioning.
 
 Document each significant tradeoff that was discussed, what was chosen,
 and why. This is the most valuable part of the plan and the most
-important to be detailed in.
+important to be detailed in. 
+
+State what was chosen. Give the reason and the rejected alternatives only
+as the spec records them. If the spec records none, write
+`Reason not recorded`.
 
 ## Implementation Plan
 
 Order of implementation. Split the execution into a numbered list of
-discrete tasks.
+discrete tasks. Each task should get a "Relies on:" line at the end
+which names the facts and decisions that task depends on from the 
+"Current State & Verified Facts" section.
 
 ## Open Questions
 
 Key risks, and anything the implementer should watch out for. List anything
-that still needs resolution. Be honest. It's better to flag unknowns than
-to pretend everything is settled.
+that still needs resolution. Include every background conflict and every
+risk that has no decision.
+
+Be honest. It's better to flag unknowns than to pretend everything is settled.
+
+## Sources
+
+List all sources used that are not this repo, e.g. docs, plans, code packages
+(with versions), and people. 

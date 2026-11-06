@@ -1,108 +1,112 @@
-# Phase-4 model test suite
+# Plan-writer test suite
 
-Answers one question: **can the Phase-4 plan-writing subagent run on Sonnet
-instead of Opus and still produce acceptable plan files?**
+Answers one question: **does the Phase-5 plan-writing subagent (`fp-plan-writer`)
+turn a confirmed spec into an acceptable plan file?**
 
-Phase 4 is the only part of the skill this measures. It is the one step that
+Phase 5 is the only part of the skill this measures. It is the one step that
 runs in a fresh subagent context with a fixed, self-contained input (`plan-notes.md`)
-and a fixed output shape (the Plan structure), so it isolates cleanly: hold the
-input spec and the prompt constant, vary only the model, judge the plan files.
-Phases 1–3 are interactive and not model-swap candidates here.
+and a fixed output shape (the plan structure), so it isolates cleanly: hold the
+input spec and the prompt constant, judge the plan files. Phases 1–4 are
+interactive and not measured here.
 
-RED/GREEN framing (see superpowers:writing-skills): **opus** is the baseline
-(current behaviour), **sonnet** is the candidate. The suite is the test that
-decides whether the downgrade holds. Do not change the SKILL.md default to Sonnet
-unless this suite shows Sonnet's plans are acceptable and not meaningfully worse
-than Opus's on the same spec.
+The agent runs on the model in its definition (`agents/fp-plan-writer.md`,
+currently Opus). Sonnet is no longer tested: in the 2026-09 pilot and the
+2026-11 trap-fixture pilot it invented specifics (schema fields, endpoint details,
+reasons) in every rep and failed acceptance, so it is not a candidate.
 
 ## Layout
 
 ```
 tests/feature-planner/
-  README.md      this file                                          tracked
-  spec.md        the fixed confirmed plan-notes.md fixture           tracked
-  prompt.py      prints the Phase-4 prompt, derived from the skill   tracked
-  judge.md       judge rubric; writes judge.json per rep             tracked
-  score.py       aggregates runs/rep-*/judge.json into a verdict     tracked
-  .gitignore                                                         tracked
-  runs/rep-N/    outputs                                             ignored
-    opus.md sonnet.md   the two plan files
-    mapping.json        orchestrator's blind map {"A": model, "B": model}
-    judge.json          the judge's scores, keyed A/B
-    prompt.md           the generated Phase-4 prompt for this run
-  RESULTS.md     write-up of the run                                 ignored
+  README.md          this file                                        tracked
+  spec.md            fixture 1: confirmed spec, consolidated section  tracked
+  spec-conflicts.md  fixture 2: current plan-notes shape, with traps  tracked
+  prompt.py          prints the Phase-5 prompt, derived from the skill tracked
+  judge.md           judge rubric; writes judge.json per rep          tracked
+  score.py           aggregates runs/<fixture>/rep-*/judge.json       tracked
+  .gitignore                                                          tracked
+  runs/<fixture>/    outputs, one dir per fixture (spec, conflicts)   ignored
+    prompt.md          the generated Phase-5 prompt for this fixture
+    rep-N/plan.md      the plan file
+    rep-N/judge.json   the judge's scores
+  RESULTS.md         write-up of the run                              ignored
 ```
 
 Only the reusable harness is committed. The prompt is derived from `SKILL.md` and
-`plan-structure.md` every run so it cannot drift. Run outputs and the write-up are scratch — what survives a
-run is the decision and the numbers, recorded in `../../skills/feature-planner/README.md`.
-
-## Why blind, and why the plan file has no MODEL line
-
-The real Phase-4 deliverable is a clean plan file with no model marker, so the
-plan files here carry none. Each arm's model is reported in the agent's *reply*
-(the `MODEL:` line the prompt demands) and recorded by the orchestrator in
-`mapping.json`. The judge sees the two plans as `A`/`B` in randomised order and
-never learns which model wrote which — otherwise it would score the label, not
-the plan.
+`plan-structure.md` every run so it cannot drift. Run outputs and the write-up are
+scratch.
 
 ## Procedure (orchestrator)
 
-Five reps minimum per run; single reps lie. The two arms are the models `opus`
-and `sonnet`; everything else — spec, prompt, judge model — is identical across
-arms and across reps. Pick one strong judge model (Opus) and use it for every rep.
+Five reps per fixture; single reps lie. Use one strong judge model (Opus) for
+every rep. Run each fixture as its own set; results across fixtures are not
+comparable.
 
-0. `python3 prompt.py > /tmp/phase4-prompt.md`. This is the Phase-4 prompt with
-   `{{NOTES_PATH}}` and `{{OUT_PATH}}` tokens, and the skill's
-   `plan-structure.md` inlined where Phase 4 would tell the agent to read it. It
-   exits non-zero if either file changed shape — fix `prompt.py`, don't
-   hand-edit the output.
-1. Per rep `N` (`mkdir -p runs/rep-N`, copy the prompt to `runs/rep-N/prompt.md`
-   for the record):
-   a. Dispatch **two** plan-writing agents in one message, one on `opus` and one
-      on `sonnet`. Each gets the generated prompt with `{{NOTES_PATH}}` = absolute
-      path to `spec.md` and `{{OUT_PATH}}` = `runs/rep-N/<model>.md`. Tell each
-      agent to read only `spec.md`, nothing else under `tests/feature-planner/`.
-   b. Record each agent's returned `MODEL:` line to confirm the arm actually ran
-      on the intended model.
-   c. Flip a coin: write `runs/rep-N/mapping.json` assigning `A`/`B` to the two
-      model files in random order.
-2. Dispatch one judge per rep with `judge.md`, filling `{{SPEC_PATH}}` (absolute
-   path to `spec.md`), `{{PLAN_A}}` / `{{PLAN_B}}` from the mapping, and
-   `{{OUT_PATH}}` = `runs/rep-N/judge.json`.
-3. `python3 score.py`.
-4. Write `RESULTS.md`: judge model, reps, the two tables, reading, decision. Then
-   carry the decision and the numbers into `../../skills/feature-planner/README.md`;
-   `RESULTS.md` is scratch.
+0. `python3 prompt.py <fixture> > runs/<name>/prompt.md`. This is the skill's
+   Phase-5 plan-writer prompt with the fixture and `plan-structure.md` pasted in,
+   as the skill pastes `plan-notes.md` and `plan-structure.md`, and an
+   `{{OUT_PATH}}` token. It exits non-zero if SKILL.md changed shape — fix
+   `prompt.py`, don't hand-edit the output.
+1. Per rep `N`: dispatch a `jacks-skills:fp-plan-writer` agent with the generated
+   prompt, `{{OUT_PATH}}` = absolute path of `runs/<name>/rep-N/plan.md`. Do not
+   override its model. The agent has only the Write tool, so it sees nothing but
+   the prompt. Dispatch all reps in one message.
+2. Per rep, dispatch one judge with `judge.md`, filling `{{SPEC_PATH}}` (absolute
+   path to the fixture), `{{PLAN}}`, and `{{OUT_PATH}}` = `runs/<name>/rep-N/judge.json`.
+   Tell it to read only `judge.md`, the fixture, and that plan.
+3. `python3 score.py runs/<name>`.
+4. Write `RESULTS.md`: judge model, reps, the tables, the failed reps, reading.
 
 ## What the numbers mean
 
-Per model, over all reps:
-- **accept-rate** — fraction of that model's plans the judge called acceptable
-  (all required sections present, high spec coverage, no fabrication, decisions
-  carry rationale, open questions preserved). Primary bar.
+Over all reps of one fixture:
+- **accept-rate** — fraction of plans that are acceptable. `score.py` computes
+  this, not the judge: a rep passes only if the judge said acceptable AND it has
+  no missing sections, no fabricated items, and every open question, conflict,
+  and undecided risk carried. Primary bar.
 - **spec-cov** — fraction of the spec's checkable items the plan represents.
 - **miss-sect** — mean count of required sections missing or empty.
-- **fabricated** — mean count of invented requirements/decisions not in the spec.
-  The dangerous weak-model failure; watch this even if accept-rate looks fine.
+- **fabricated** — mean count of things the plan states that the spec does not
+  support, including any reason the spec does not give. One is a failure.
 - **decision-q** — 1–5 quality of the Design Decisions section (what + why).
-- **oq-carried** — fraction of plans that kept both open questions instead of
-  silently resolving them.
-- **head-to-head** — blind preference count. Sonnet losing most reps means worse
-  even if individually "acceptable"; roughly even means the downgrade holds.
+- **oq-carried** — fraction of plans that kept every deferred open question
+  instead of silently resolving it.
+- **conflicts** — fraction of plans that flagged every background conflict in
+  Open Questions instead of picking a side.
+- **risks** — fraction of plans that carried every undecided risk into Open
+  Questions instead of choosing a mitigation.
 
-## The decision rule
+`score.py` also lists each failed rep and why.
 
-Adopt Sonnet only if, over ≥5 reps: Sonnet's accept-rate ≈ Opus's (and high),
-Sonnet fabricates no more than Opus, and the head-to-head is roughly even (Sonnet
-not preferred-against in a clear majority of reps). Any of: Sonnet dropping
-required sections, inventing requirements, or losing most head-to-heads → keep
-Opus. Record the outcome in `../../skills/feature-planner/README.md`.
+## The bar
 
-## Changing the fixture
+The plan writer passes when accept-rate is 1.00 on both fixtures over five reps.
+Any failed rep is a defect in the Phase-5 prompt, `plan-structure.md`, or the
+agent definition — read the judge's `fabricated_items` and `missing_items` to
+see which.
 
-Edit `spec.md`, then clear `runs/` (or point `score.py` at a fresh dir). Results
-across different specs are not comparable. The fixture is deliberately mid-size
-with enumerable decisions, explicit non-goals, decided edge cases, and two
-deferred open questions, so coverage and fabrication are measurable. To test
-Sonnet on a harder spec, add a second fixture and run it as its own set of reps.
+## Fixtures
+
+Edit a fixture, then clear its `runs/<name>/`. Results across different specs
+are not comparable.
+
+### `spec.md`
+
+An idempotent webhook ingestion endpoint, in an older notes shape with a
+`## Consolidated spec (confirmed)` section and no `## Background`. Mid-size, with
+enumerable decisions, explicit non-goals, decided edge cases, and two deferred
+open questions, so coverage and fabrication are measurable.
+
+### `spec-conflicts.md`: the trap fixture
+
+It has the shape the skill's `plan-notes.md` has now (a `## Background` section,
+domain sections, no consolidated section). Each trap tests one rule in
+`judge.md`. The trap list lives here, not in the fixture, so the plan writer
+cannot see it:
+
+| Trap | Where | A plan fails it when |
+|---|---|---|
+| Contradiction between a planned doc and the code | Background: 30-day retention in `export-v2.md` vs the 7-day lifecycle rule in `exports.tf` | it states 7 or 30 days as fact without flagging the conflict in Open Questions |
+| "Must" risk with no decision | Security: EU data must use the tenant's KMS key; SSE-S3 vs per-tenant keys not decided | it picks a mitigation, or drops the risk from Open Questions |
+| Decision with no recorded reason | Core behavior: CSV only | it gives any reason instead of `Reason not recorded` (each one counts as fabricated) |
+| Fact that only fits Current State | Background: `AuditLog.for_tenant()` tenant scoping already enforced | it drops the fact, or restates it as a new goal or decision instead of a tagged fact in Current State |

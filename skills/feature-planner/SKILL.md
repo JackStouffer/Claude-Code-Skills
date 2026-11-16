@@ -34,7 +34,13 @@ The user gives you a rough description. Read it carefully. Identify three things
 
 Do not ask questions yet. First, restate your understanding in 2-3 sentences. The user can then correct a fundamental misunderstanding before you go into the details.
 
-After the user confirms your restatement, create a running notes file at `plan-notes.md` in the project root. **Tell the user the exact path.** This file is an ephemeral scratch pad, not the chat history. It holds the source of truth for the spec during planning. It must survive across context resets. Phase 6 deletes it after the final plan is written. Seed it:
+After the user confirms your restatement, create a running notes file in the project root with a unique name, so parallel feature-planner sessions in the same repo do not share one file. Run this from the project root and use the path it prints:
+
+```bash
+f=$(mktemp plan-notes-XXXXXX) && mv "$f" "$f.md" && echo "$f.md"
+```
+
+From here on, `plan-notes.md` means that minted file. Never write to a bare `plan-notes.md` or to another session's notes file. **Tell the user the exact path.** This file is an ephemeral scratch pad, not the chat history. It holds the source of truth for the spec during planning. It must survive across context resets. Phase 6 deletes it after the final plan is written. Seed it:
 
 ```markdown
 # Plan Notes: [Feature Name]

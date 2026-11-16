@@ -16,8 +16,10 @@ It acts as a senior staff engineer interrogating the idea one round at a time.
 
 1. **Play back the understanding, then open a notes file.** Before any questions,
    restate the idea in 2-3 sentences so a fundamental misread is caught early, then
-   create `plan-notes.md` in the project root as an ephemeral source of truth for
-   the spec while planning runs.
+   create a uniquely named `plan-notes-XXXXXX.md` (minted with `mktemp`) in the
+   project root as an ephemeral source of truth for the spec while planning runs.
+   The unique name lets several planning sessions run in parallel in one repo.
+   The rest of this README calls it `plan-notes.md`.
 2. **Gather background.** Explore the codebase for the code the feature touches,
    the behavior it must preserve, adjacent systems, and conventions in force, and
    write the verified facts (with file paths) into `plan-notes.md`. The question
